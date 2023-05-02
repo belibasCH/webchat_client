@@ -1,0 +1,181 @@
+* {
+    font-family: Poppins, sans-serif;
+}
+
+body {
+    --border-radius: 20px;
+    --default-padding: 20px;
+    --glass-color: rgba(255, 255, 255, 0.36);
+    --blur: blur(12px);
+    --primary-color: rgb(163, 106, 242);
+    --glass-color-hover: rgba(163, 106, 242, 0.5);;
+  }
+  
+
+body{
+    background-image: url(/assets/img/Background.png);
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.chat-container {
+    background-color: rgba(255, 255, 255, 0.36);
+    box-shadow:inset 0px 0px 0px 1px rgba(255, 255, 255, 0.66);
+    border-radius: var(--border-radius);
+    width: 80%;
+    max-width: 1000px;
+    min-height: 600px;
+    display: flex;
+    position: relative;
+    
+}
+nav {
+    display:flex;
+    flex-direction: column;
+    background-color: #fff;
+    border-radius: var(--border-radius);
+ 
+}
+nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+nav ul li {
+    height: 70px;
+    width: 70px;
+    border-radius: var(--border-radius);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+nav ul li:hover{
+    background-color: var(--glass-color-hover);
+    cursor: pointer;
+}
+nav ul li:active{
+    background-color: var(--primary-color);
+}
+.chat-list{
+    display: flex;
+    flex-direction: column;
+    padding-left: var(--default-padding);
+    background-color: var(--glass-color);
+    border-radius: 
+        0
+        var(--border-radius) 
+        var(--border-radius)
+        0 ;
+    min-width: 20%;
+}
+.chat-wrapper{
+    flex-grow: 2;
+    padding: var(--default-padding);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.chat {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: var(--default-padding);
+    flex-grow: 2;
+    padding: var(--default-padding) 0;
+}
+.chat .chat-item {
+    min-width: 30%;
+    padding: var(--default-padding);
+    background-color: var(--glass-color);
+    backdrop-filter: var(--blur);
+    border-radius: var(--border-radius);
+    align-self: flex-start;
+}
+.chat .chat-item.me {
+    background-color: red;
+    align-self: flex-end;
+}
+
+.chat-input {
+    display: flex;
+    gap: var(--default-padding);
+
+}
+.chat-input #message{
+    padding: var(--default-padding);
+    background-color: var(--glass-color);
+    backdrop-filter: var(--blur);
+    border-radius: var(--border-radius);
+    border: none;
+    flex-grow: 2;
+}
+
+.primary-button{
+    background-color: var(--primary-color);
+    border-radius: var(--border-radius);
+    border: none;
+    height: 70px;
+    width: 70px;
+}
+
+
+.secure {
+    position: absolute;
+    top: 20px;
+    right: -25px;
+    background-color: var(--glass-color);
+    backdrop-filter: var(--blur);
+    border: 1px solid #fff;
+    height: 50px;
+    width: 50px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+
+.secure-icon {
+    background-color: black;
+    width: 15.71px;
+    height: 20px;
+    -webkit-mask-image: url(/assets/img/secure-icon.svg);
+    mask-image:  url(/assets/img/secure-icon.svg);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat; 
+}
+.chats-icon {
+    background-color: black;
+    width: 20px;
+    height: 20px;
+    -webkit-mask-image: url(/assets/img/chats-icon.svg);
+    mask-image:  url(/assets/img/chats-icon.svg);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat; 
+}
+.new-icon {
+    background-color: black;
+    width: 20px;
+    height: 20px;
+    -webkit-mask-image: url(/assets/img/new-icon.svg);
+    mask-image:  url(/assets/img/new-icon.svg);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat; 
+}
+.user-icon {
+    background-color: black;
+    width: 20px;
+    height: 20px;
+    -webkit-mask-image: url(/assets/img/user-icon.svg);
+    mask-image:  url(/assets/img/user-icon.svg);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat; 
+}
+
+
+    
+
