@@ -1,0 +1,47 @@
+
+
+.secure-icon {
+    background-color: black;
+    width: 15.71px;
+    height: 20px;
+    -webkit-mask-image: url(/assets/img/secure-icon.svg);
+    mask-image:  url(/assets/img/secure-icon.svg);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat; 
+}
+.chats-icon {
+    background-color: black;
+    width: 20px;
+    height: 20px;
+    -webkit-mask-image: url(/assets/img/chats-icon.svg);
+    mask-image:  url(/assets/img/chats-icon.svg);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat; 
+}
+.new-icon {
+    background-color: black;
+    width: 20px;
+    height: 20px;
+    -webkit-mask-image: url(/assets/img/new-icon.svg);
+    mask-image:  url(/assets/img/new-icon.svg);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat; 
+}
+.user-icon {
+    background-color: black;
+    width: 20px;
+    height: 20px;
+    -webkit-mask-image: url(/assets/img/user-icon.svg);
+    mask-image:  url(/assets/img/user-icon.svg);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat; 
+}
+.send-icon {
+    background-color: white;
+    width: 20px;
+    height: 20px;
+    -webkit-mask-image: url(/assets/img/send-icon.svg);
+    mask-image:  url(/assets/img/send-icon.svg);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat; 
+}

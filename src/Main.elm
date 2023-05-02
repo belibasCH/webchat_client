@@ -8,11 +8,12 @@ import Html.Attributes exposing (class)
 import Html exposing (nav)
 import Html exposing (p)
 import Html exposing (ul)
-import Html exposing (li)
+import Html exposing (li, h2, a)
 import Html exposing (img)
 import Html.Attributes exposing (..)
 import Html exposing (input, Attribute)
 import Html.Events exposing (onInput)
+import Html exposing (textarea)
 
 
 main =
@@ -40,40 +41,60 @@ update msg model =
 view : Model -> Html Msg
 view model =
   div [ class "chat-container"] [
-    nav [][
+    navigation,
+    chatList,
+    div [ class "chat-wrapper"][
+      div [class "chat-header"] [
+           text "Name 1"],
+    div [class "chat"][
+      message,
+      message,
+      message,
+      div [class "chat-item me"] [
+           text "Nachricht 2 dfgdg dfgsd gdg fsd"],
+      message
+    ],
+    inputField
+    ],
+    secureSign
+  ]
+
+navigation : Html Msg
+navigation = nav [][
       ul [][
         li [][div [class "user-icon"] []],
         li [][div [class "chats-icon"] []],
         li [][div [class "new-icon"] []]
       ]
-    ],
-    div [class "chat-list"][
-      div [] [
-           text "Name 1"],
-      div [] [
-           text "Name 2"],
-      div [] [
-           text "Name 3"]
-
-    ],
-    div [ class "chat-wrapper"][
-      div [class "chat-header"] [
-           text "Name 1"],
-    div [class "chat"][
-      div [class "chat-item"] [
-           text "Nachricht 1"],
-      div [class "chat-item me"] [
-           text "Nachricht 2 dfgdg dfgsd gdg fsd"],
-      div [class "chat-item"] [
-           text "Nachricht 3 sdfsaf sdf "]
-    ],
-    div [class "chat-input"] [
-       input [ id "message",placeholder "Nachricht"] []
-    , button [class "primary-button"] [ text ("Senden") ]
     ]
-    ],
-    div [class "secure"] [
+
+chatList : Html Msg
+chatList = div [class "chat-list"][
+      contactPerson,
+      contactPerson,
+      contactPerson
+    ]
+contactPerson : Html Msg
+contactPerson = a [class "contact-preview", href "https://www.w3schools.com/howto/img_avatar.png"] [
+          img [src "https://www.w3schools.com/howto/img_avatar.png", class "avatar"] [],
+          div [class "contact-details"] [
+           h2 [] [text "Name Person"],
+           p [] [text "Meine letzte Nachricht"]
+           ]
+           ]
+
+message : Html Msg
+message = div [class "chat-item"] [
+           text "Nachricht 1"]
+
+inputField : Html Msg
+inputField = div [class "chat-input"] [
+       textarea [ id "message",placeholder "Nachricht"] []
+    , button [class "primary-button"] [ div [class "send-icon"] [] ]
+    ]
+
+secureSign : Html Msg
+secureSign = div [class "secure", title "This chat is End-to-End Encrypted"] [
       div [class "secure-icon"] [
          ]
     ]
-  ]
