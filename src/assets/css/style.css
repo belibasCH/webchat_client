@@ -184,13 +184,16 @@ nav ul li:active{
     height: 30px;
     width: 30px;
     border-radius: 50%;
-
-
+}
+.contact-preview.active{
+    background: var(--primary-color);
+    border-radius: 0 var(--border-radius) var(--border-radius) 0;
 }
 .contact-preview .contact-details{
     display: flex;
     flex-direction: column;
 }
+
 .contact-preview .contact-details h2,
 .contact-preview .contact-details p,
 .contact-preview .contact-details h1{

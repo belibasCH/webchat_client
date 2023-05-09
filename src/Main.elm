@@ -1,6 +1,5 @@
 module Main exposing (..)
 
-
 import Browser
 import Html exposing (Html, button, div, text, li, h2, a, h1 , h3, ul,p,nav,textarea, img)
 import Html.Events exposing (onClick)
@@ -12,7 +11,6 @@ import Html exposing (textarea)
 import Html.Events exposing (targetValue)
 import Maybe exposing (withDefault)
 
-
 main =
   Browser.sandbox { init = init, update = update, view = view }
 
@@ -20,6 +18,7 @@ type alias Model = {
   currentText : String,
   currentChat : Chat,
   chatList : List Chat}
+
 
 type alias Chat = { 
   chatPartner : ChatPartner, 
@@ -41,7 +40,7 @@ init = {
   currentChat = { 
     chatPartner = { 
     name = "Name Person", 
-    id = 1,
+    id = 0,
     avatar = "https://www.w3schools.com/howto/img_avatar.png"}, 
     messages = [
       { content = "Nachricht 1 -P0", timestamp = "12:00 Uhr"}, 
@@ -92,7 +91,7 @@ view model =
     div [class "sidebar"] [
     navigation,
     div [class "chat-list"][
-      chatListView model.chatList
+      contactList model.chatList model 
     ]
     
     ],
@@ -116,11 +115,15 @@ navigation = nav [][
       ]
     ]
 
-chatListView : List Chat -> Html Msg
-chatListView chats = List.map contactPerson chats |> div [class "contact-list"]
+contactList : List Chat -> Model -> Html Msg
+contactList chats model = 
+  case chats of 
+    [] -> div [] []
+    x::xs -> div [] [contactPerson model x, contactList xs model]
 
-contactPerson : Chat -> Html Msg
-contactPerson chat = a [class "contact-preview", onClick (SetChat chat)] [
+
+contactPerson :  Model -> Chat ->  Html Msg
+contactPerson model chat  = a [if model.currentChat.chatPartner.id == chat.chatPartner.id then class "contact-preview active" else class "contact-preview", onClick (SetChat chat)] [
           img [src "https://www.w3schools.com/howto/img_avatar.png", class "avatar"] [],
           div [class "contact-details"] [
            h2 [] [text chat.chatPartner.name],
