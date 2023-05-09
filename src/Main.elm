@@ -10,45 +10,29 @@ import Html.Events exposing (onInput)
 import Html exposing (textarea)
 import Html.Events exposing (targetValue)
 import Maybe exposing (withDefault)
+import Page.ChatView as Chat exposing (..)
+import Page.LoginView as Login exposing (..)
+import Types exposing (..)
 
 main =
   Browser.sandbox { init = init, update = update, view = view }
 
 type alias Model = {
-  currentText : String,
-  currentChat : Chat,
-  chatList : List Chat}
-
-
-type alias Chat = { 
-  chatPartner : ChatPartner, 
-  messages : List Message
-  }
-type alias Message = {
-  content : String,
-  timestamp : String
-  }
-type alias ChatPartner = {
-  name : String,
-  id : Int,
-  avatar : String
+  page : Page
   }
 
 init : Model
 init = {
-  currentText = "Hallo", 
-  currentChat = { 
-    chatPartner = { 
-    name = "Name Person", 
-    id = 0,
-    avatar = "https://www.w3schools.com/howto/img_avatar.png"}, 
-    messages = [
-      { content = "Nachricht 1 -P0", timestamp = "12:00 Uhr"}, 
-      { content = "Nachricht 2 p0", timestamp = "12:00 Uhr"}
-      ]
-  },
-  chatList = chatList}
+  --page  = LoginPage {username = "", password = ""}
 
+  page = ChatPage {
+    currentText = "",
+    currentChat = chatList |> List.head |> Maybe.withDefault { chatPartner = { name = "Name Person1", id = 1, avatar = "https://www.w3schools.com/howto/img_avatar.png"}, messages = []},
+    chatList = chatList
+    }
+
+  }
+  
 chatList : List Chat
 chatList = [
   { chatPartner = { 
@@ -72,96 +56,39 @@ chatList = [
   }]
 
 
-type Msg
-  = ChangeText String
-  | SetChat Chat
-  | SendMessage
+
 
 update : Msg -> Model -> Model
 update msg model =
   case msg of
-    ChangeText text-> { model | currentText = text }
-    SetChat chat -> { model | currentChat = chat }
     --TBD
     SendMessage ->  model
+   -- ChangeText  s -> { model | page = { model.page | currentText = s}}
+    --SetChat chat -> { model | page = ChatPage {currentText = "", currentChat = chat, chatList = model.page.chatList}}
 
 view : Model -> Html Msg
-view model =
-  div [ class "chat-container"] [
-    div [class "sidebar"] [
-    navigation,
-    div [class "chat-list"][
-      contactList model.chatList model 
-    ]
-    
-    ],
-    div [ class "chat-wrapper"][
-      currentChatPartnerView model.currentChat,
+view m = case m.page of
+  LoginPage lI -> Login.loginView lI
+  ChatPage cI-> Chat.chatView cI
+  NewChatPage -> newChatView
+  SettingsPage -> settingsView
 
-      --Map over messages an put it in a div
-      List.map message (List.reverse (model.currentChat.messages)) |> div [class "chat"],
-    
-    inputField
-    ],
-    secureSign
+newChatView : Html Msg
+newChatView = div [class "new-chat-container"] [
+    div [class "new-chat-wrapper"] [
+      h1 [] [text "New Chat"],
+      input [class "new-chat-input", placeholder "Username"] [],
+      button [class "primary-button", onClick SendMessage] [text "Create Chat"]
+    ]
   ]
 
-navigation : Html Msg
-navigation = nav [][
-      ul [][
-        li [][div [class "user-icon"] []],
-        li [][div [class "chats-icon"] []],
-        li [][div [class "new-icon"] []]
-      ]
+settingsView : Html Msg
+settingsView = div [class "settings-container"] [
+    div [class "settings-wrapper"] [
+      h1 [] [text "Settings"],
+      input [class "settings-input", placeholder "Username"] [],
+      input [class "settings-input", placeholder "Password"] [],
+      button [class "primary-button", onClick SendMessage] [text "Save"]
     ]
+  ]
 
-contactList : List Chat -> Model -> Html Msg
-contactList chats model = 
-  case chats of 
-    [] -> div [] []
-    x::xs -> div [] [contactPerson model x, contactList xs model]
-
-
-contactPerson :  Model -> Chat ->  Html Msg
-contactPerson model chat  = a [if model.currentChat.chatPartner.id == chat.chatPartner.id then class "contact-preview active" else class "contact-preview", onClick (SetChat chat)] [
-          img [src "https://www.w3schools.com/howto/img_avatar.png", class "avatar"] [],
-          div [class "contact-details"] [
-           h2 [] [text chat.chatPartner.name],
-           p [] [text (withDefault "Test"(
-            --get last element of messages list
-            List.head (List.reverse chat.messages)
-            |> Maybe.map .content 
-           ))]
-           ]
-           ]
-getFirst : List Message -> String
-getFirst messages = 
-  case messages of
-    [] -> "Keine Nachrichten"
-    x::xs -> x.content
-
-message : Message -> Html Msg
-message mes = div [class "chat-item"] [
-           p [] [text mes.content]
-           ]
-
-inputField : Html Msg
-inputField = div [class "chat-input"] [
-       textarea [ id "message", placeholder "Nachricht", onInput ChangeText] []
-    , button [class "primary-button"] [ div [class "send-icon"] [] ]
-    ]
-
-secureSign : Html Msg
-secureSign = div [class "secure", title "This chat is End-to-End Encrypted"] [
-      div [class "secure-icon"] [
-         ]
-    ]
-
-currentChatPartnerView : Chat -> Html Msg
-currentChatPartnerView chat = a [class "contact-preview large", href "https://www.w3schools.com/howto/img_avatar.png"] [
-          img [src "https://www.w3schools.com/howto/img_avatar.png", class "avatar"] [],
-          div [class "contact-details"] [
-           h1 [] [text chat.chatPartner.name],
-           p [] [text "online"]
-           ]
-           ]
