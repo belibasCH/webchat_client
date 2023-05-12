@@ -1,10 +1,18 @@
 module Types exposing (..)
 
 type Msg
-  = 
---ChangeText String
- -- | SetChat Chat
-  SendMessage
+  =   Submit
+  
+
+-- type LoginMsg
+--   = Submit
+--   | ChangeUsername String
+--   | ChangePassword String
+
+-- type ChatMsg
+--   = SendMessage
+
+
 
 
 type alias LoginInfo = {
@@ -19,8 +27,8 @@ type alias ChatInfo = {
 
 
 type Page 
-  = LoginPage LoginInfo
-  | ChatPage ChatInfo
+  = LoginPage
+  | ChatPage
   | NewChatPage 
   | SettingsPage
 

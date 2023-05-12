@@ -13,6 +13,11 @@ loginView l = div [class "login-container"] [
       h1 [] [text "Login"],
       input [class "login-input", placeholder "Username" ] [],
       input [class "login-input", placeholder "Password"] [],
-      button [class "primary-button", onClick SendMessage] [text "Login"]
+      button [class "primary-button", onClick Submit] [text "Login"]
     ]
   ]
+
+updateLoginInfo : Msg -> LoginInfo -> Page
+updateLoginInfo msg l =
+  case msg of
+    Submit -> LoginPage

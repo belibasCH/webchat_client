@@ -19,7 +19,6 @@ a:hover {
     background-color: var(--glass-color-hover);
     cursor: pointer;
 }
-  
 
 body{
     background-image: url(/assets/img/Background.png);
