@@ -2,6 +2,11 @@ module Types exposing (..)
 
 type Msg
   =   Submit
+    |   Recv String
+    |   SetUsername String
+    |   SetPassword String
+    |   ValidatePassword String
+    |   SetPage Page
   
 
 -- type LoginMsg
@@ -28,19 +33,20 @@ type alias ChatInfo = {
 
 type Page 
   = LoginPage
+  | RegisterPage
   | ChatPage
   | NewChatPage 
-  | SettingsPage
+    | ProfilePage
 
 type alias Chat = { 
-  chatPartner : ChatPartner, 
+  chatPartner : User, 
   messages : List Message
   }
 type alias Message = {
   content : String,
   timestamp : String
   }
-type alias ChatPartner = {
+type alias User = {
   name : String,
   id : Int,
   avatar : String

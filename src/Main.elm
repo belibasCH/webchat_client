@@ -1,4 +1,4 @@
-module Main exposing (..)
+port module Main exposing (..)
 
 import Browser
 import Html exposing (Html, button, div, text, li, h2, a, h1 , h3, ul,p,nav,textarea, img)
@@ -11,10 +11,17 @@ import Html exposing (textarea)
 import Html.Events exposing (targetValue)
 import Maybe exposing (withDefault)
 import Page.ChatView as Chat exposing (..)
+import Page.ProfileView as Profile exposing (..)
 import Page.LoginView as Login exposing (..)
+import Page.RegisterView as Register exposing (..)
+import Page.NewChatView as NewChat exposing (..)
 import Types exposing (..)
 import Debug exposing (log)
 import List exposing (head)
+import List exposing (sum)
+import Json.Decode as D
+import Json.Encode as E
+import Html.Attributes exposing (classList)
 
 main : Program () Model Msg
 main =
@@ -22,26 +29,32 @@ main =
         { init = \_ -> initialModel
         , view = view
         , update = update
-        , subscriptions = \_ -> Sub.none
+        , subscriptions = subscriptions
         }
+
+port sendMessage : E.Value -> Cmd msg
+port messageReceiver : (String -> msg) -> Sub msg
 
 initialModel : (Model, Cmd Msg)
 initialModel = ({
   page = LoginPage, 
+  recivedMessage = "",
   chatInfo = {
     currentText = "", 
     currentChat = currtenChat, 
     chatList = chatList}, 
-  loginInfo = {username = "", password = ""}
-  },
+  loginInfo = {username = "", password = ""},
+  currentUser = {name = "Name Person1", id = 1, avatar = "https://www.w3schools.com/howto/img_avatar.png"}  },
   Cmd.none)
 
 
 
 type alias Model = {
   page : Page,
+  recivedMessage : String,
   loginInfo : LoginInfo,
-  chatInfo : ChatInfo
+  chatInfo : ChatInfo,
+  currentUser : User
   }
 
 currtenChat : Chat
@@ -84,38 +97,100 @@ chatList = [
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case (model.page, msg) of
-  (LoginPage, Submit) -> ({model | page = ChatPage}, Cmd.none)
-  otherwise -> (model, Cmd.none)
+  (_, SetUsername u) -> ({model | loginInfo = {username = u, password = model.loginInfo.password}}, Cmd.none)
+  (_, SetPassword p) -> ({model | loginInfo = {username = model.loginInfo.username, password = p}}, Cmd.none)
+  (_, ValidatePassword p)-> ({model | loginInfo = {username = model.loginInfo.username, password = p}}, Cmd.none)
+  (_, Submit) -> ({model | page = ChatPage}, sendMessage (encode model.loginInfo.username))
+  (_, Recv s) -> ({model | page = ChatPage , recivedMessage = s}, Cmd.none)
+  (_, SetPage p) -> ({model | page = p}, Cmd.none)
 
+encode : String -> E.Value
+encode s =
+  E.object
+    [ ("type", E.string s)
+    , ("username", E.string s)
+    , ("password", E.string s)
+    ]
 
     --TBD
    -- ChangeText  s -> { model | page = { model.page | currentText = s}}
     --SetChat chat -> { model | page = ChatPage {currentText = "", currentChat = chat, chatList = model.page.chatList}}
 
+subscriptions : Model -> Sub Msg
+subscriptions _ =
+  messageReceiver Recv
+
 view : Model -> Html Msg
 view m = case m.page of
-  LoginPage -> Login.loginView m.loginInfo
-  ChatPage -> Chat.chatView m.chatInfo
+  LoginPage -> withLoginContainer m (Login.loginView m.loginInfo)
+  RegisterPage -> withLoginContainer m (Register.registerView m.loginInfo)
+  ChatPage -> withChatContainer m (Chat.chatView m.chatInfo)
+  NewChatPage -> withChatContainer m (NewChat.newChatView m.chatInfo)
+  ProfilePage -> withChatContainer m (Profile.profileView m.currentUser)
 
-  NewChatPage -> newChatView
-  SettingsPage -> settingsView
 
-newChatView : Html Msg
-newChatView = div [class "new-chat-container"] [
-    div [class "new-chat-wrapper"] [
-      h1 [] [text "New Chat"],
-      input [class "new-chat-input", placeholder "Username"] [],
-      button [class "primary-button"] [text "Create Chat"]
-    ]
+withLoginContainer : Model -> Html Msg  -> Html Msg
+withLoginContainer model content = 
+  div [] [
+    div [class "login-container"] [
+      nav [class "login-nav"] [
+        ul [class "login-nav-list"] [
+          li 
+            [classList [
+              ("login-nav-item", True),
+              ("left", True),
+              ("active", model.page == LoginPage)
+              ],
+            onClick (SetPage LoginPage)] [a [class "login-nav-item"] [text "Login"]],
+          li 
+            [classList [
+              ("login-nav-item", True),
+              ("right", True),
+              ("active", model.page == RegisterPage)
+              ],
+              onClick (SetPage RegisterPage )] [a [class "login-nav-item"] [text "Register"]] 
+          ]
+         ],
+    content
+    ],
+    div [id "bubble1"] []
   ]
 
-settingsView : Html Msg
-settingsView = div [class "settings-container"] [
-    div [class "settings-wrapper"] [
-      h1 [] [text "Settings"],
-      input [class "settings-input", placeholder "Username"] [],
-      input [class "settings-input", placeholder "Password"] [],
-      button [class "primary-button"] [text "Save"]
+withChatContainer : Model -> Html Msg  -> Html Msg
+withChatContainer model content = 
+ div [ class "chat-container"] [
+  navigation model.page,
+  content,
+  secureSign
+ ]
+
+navigation : Page -> Html Msg
+navigation page = nav [class "sidebar"][
+      ul [][
+        li [ classList [
+          ("active", page == ProfilePage)
+          ],
+          onClick (SetPage ProfilePage)
+        ][div [class "user-icon"] []],
+        li [classList [
+          ("active", page == ChatPage)
+           ],
+          onClick (SetPage ChatPage)
+          ][div [class "chats-icon"] []],
+        li [classList [
+          ("active", page == NewChatPage)
+           ],
+          onClick (SetPage NewChatPage)
+          ][div [class "new-icon"] []]
+      ]
     ]
-  ]
+
+secureSign : Html Msg
+secureSign = div [class "secure", title "This chat is End-to-End Encrypted"] [
+      div [class "secure-icon"] [
+         ]
+    ]
+
+
+  
 

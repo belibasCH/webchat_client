@@ -13,13 +13,9 @@ import Types exposing (..)
 
 chatView : ChatInfo -> Html Msg
 chatView data = 
-  div [ class "chat-container"] [
-    div [class "sidebar"] [
-    navigation,
+  div [] [
     div [class "chat-list"][
       contactList data.chatList data 
-    ]
-    
     ],
     div [ class "chat-wrapper"][
       currentChatPartnerView data.currentChat,
@@ -28,20 +24,8 @@ chatView data =
       List.map message (List.reverse (data.currentChat.messages)) |> div [class "chat"],
     
     inputField
-    ],
-    secureSign
-  ]
-
-
-
-navigation : Html Msg
-navigation = nav [][
-      ul [][
-        li [][div [class "user-icon"] []],
-        li [][div [class "chats-icon"] []],
-        li [][div [class "new-icon"] []]
-      ]
     ]
+  ]
 
 contactList : List Chat -> ChatInfo -> Html Msg
 contactList chats chatInfo = 
@@ -79,11 +63,7 @@ inputField = div [class "chat-input"] [
     , button [class "primary-button"] [ div [class "send-icon"] [] ]
     ]
 
-secureSign : Html Msg
-secureSign = div [class "secure", title "This chat is End-to-End Encrypted"] [
-      div [class "secure-icon"] [
-         ]
-    ]
+
 
 currentChatPartnerView : Chat -> Html Msg
 currentChatPartnerView chat = a [class "contact-preview large", href "https://www.w3schools.com/howto/img_avatar.png"] [
