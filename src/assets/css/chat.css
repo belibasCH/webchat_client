@@ -1,0 +1,102 @@
+.chat-list{
+    display: flex;
+    flex-direction: column;
+    
+    border-radius: 
+        0
+        var(--border-radius) 
+        var(--border-radius)
+        0 ;
+    width: 200px;
+}
+.chat-wrapper{
+    flex-grow: 2;
+    flex-basis: 2;
+    padding: var(--default-padding);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.chat {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: var(--default-padding);
+    flex-grow: 2;
+    padding: var(--default-padding) 0;
+    overflow-y: scroll;
+    max-height: 600px;
+    padding-right: calc(70px + var(--default-padding) - 10px);
+}
+.chat .chat-item {
+    min-width: 30%;
+    padding: 0 var(--default-padding);
+    background-color: var(--glass-color);
+    backdrop-filter: var(--blur);
+    border-radius: var(--border-radius);
+    align-self: flex-start;
+}
+.chat .chat-item.me {
+    background-color: red;
+    align-self: flex-end;
+}
+
+.chat-input {
+    display: flex;
+    gap: var(--default-padding);
+
+}
+.chat-input #message{
+    padding: var(--default-padding);
+    background-color: var(--glass-color);
+    backdrop-filter: var(--blur);
+    border-radius: var(--border-radius);
+    border: none;
+    flex-grow: 2;
+    height: 70px;
+    resize: none;
+}
+
+.primary-button{
+    background-color: var(--primary-color);
+    border-radius: var(--border-radius);
+    border: none;
+    height: 70px;
+    width: 70px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+
+.contact-preview {
+    display: flex;
+    gap: var(--default-padding);
+    align-items: center;
+    padding: var(--default-padding);
+}
+.contact-preview .avatar {
+    height: 30px;
+    width: 30px;
+    border-radius: 50%;
+}
+.contact-preview.active{
+    background: var(--glass-color);
+    border-radius: 0 var(--border-radius) var(--border-radius) 0;
+}
+.contact-preview .contact-details{
+    display: flex;
+    flex-direction: column;
+}
+
+.contact-preview .contact-details h2,
+.contact-preview .contact-details p,
+.contact-preview .contact-details h1{
+   margin: 0;
+}
+ .contact-preview.large .avatar {
+    height: 50px;
+    width: 50px;
+ }
+ .contact-preview.large {
+  padding: 0;
+ }
