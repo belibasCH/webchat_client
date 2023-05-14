@@ -7,6 +7,8 @@ type Msg
     |   SetPassword String
     |   ValidatePassword String
     |   SetPage Page
+    |   ChangeUserName String
+    |   ChangePassword String
   
 
 type alias LoginInfo = {

@@ -57,6 +57,7 @@ type alias Model = {
   currentUser : User
   }
 
+
 currtenChat : Chat
 currtenChat = { chatPartner = { 
     name = "Name Person1",
@@ -103,6 +104,8 @@ update msg model =
   (_, Submit) -> ({model | page = ChatPage}, sendMessage (encode model.loginInfo.username))
   (_, Recv s) -> ({model | page = ChatPage , recivedMessage = s}, Cmd.none)
   (_, SetPage p) -> ({model | page = p}, Cmd.none)
+  (_, ChangeUserName u) -> ({model | currentUser = {name = u, id = model.currentUser.id, avatar = model.currentUser.avatar}}, Cmd.none)
+  (_, ChangePassword p) -> ({model | currentUser = {name = model.currentUser.name, id = model.currentUser.id, avatar = model.currentUser.avatar}}, Cmd.none)
 
 encode : String -> E.Value
 encode s =

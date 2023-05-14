@@ -100,7 +100,7 @@ button.login:hover {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    animation: bubble1 15s ease-in-out alternate infinite;
+    animation: bubble1 ease-in-out 10s  alternate infinite;
     z-index: 0;
     opacity: 0.3;
 }
