@@ -124,9 +124,9 @@ view : Model -> Html Msg
 view m = case m.page of
   LoginPage -> withLoginContainer m (Login.loginView m.loginInfo)
   RegisterPage -> withLoginContainer m (Register.registerView m.loginInfo)
-  ChatPage -> withChatContainer m (Chat.chatView m.chatInfo)
-  NewChatPage -> withChatContainer m (NewChat.newChatView m.chatInfo)
-  ProfilePage -> withChatContainer m (Profile.profileView m.currentUser)
+  ChatPage -> withContainer m (Chat.chatView m.chatInfo)
+  NewChatPage -> withContainer m (NewChat.newChatView m.chatInfo)
+  ProfilePage -> withContainer m (Profile.profileView m.currentUser)
 
 
 withLoginContainer : Model -> Html Msg  -> Html Msg
@@ -156,9 +156,9 @@ withLoginContainer model content =
     div [id "bubble1"] []
   ]
 
-withChatContainer : Model -> Html Msg  -> Html Msg
-withChatContainer model content = 
- div [ class "chat-container"] [
+withContainer : Model -> Html Msg  -> Html Msg
+withContainer model content = 
+ div [ class "container"] [
   navigation model.page,
   content,
   secureSign

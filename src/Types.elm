@@ -9,17 +9,6 @@ type Msg
     |   SetPage Page
   
 
--- type LoginMsg
---   = Submit
---   | ChangeUsername String
---   | ChangePassword String
-
--- type ChatMsg
---   = SendMessage
-
-
-
-
 type alias LoginInfo = {
   username : String,
   password : String

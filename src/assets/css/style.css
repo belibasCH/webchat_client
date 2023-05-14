@@ -40,7 +40,7 @@ p {
     font-size: 12px;
 }
 
-.chat-container {
+.container {
     background-color: rgba(255, 255, 255, 0.36);
     box-shadow:inset 0px 0px 0px 1px rgba(255, 255, 255, 0.66);
     border-radius: var(--border-radius);

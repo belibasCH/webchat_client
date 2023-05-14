@@ -13,11 +13,11 @@ import Types exposing (..)
 
 chatView : ChatInfo -> Html Msg
 chatView data = 
-  div [] [
+  div [class "chat-container"] [
     div [class "chat-list"][
       contactList data.chatList data 
     ],
-    div [ class "chat-wrapper"][
+    div [ class "current-chat"][
       currentChatPartnerView data.currentChat,
 
       --Map over messages an put it in a div
