@@ -8,13 +8,13 @@ import Html exposing (input, Attribute)
 import Types exposing (..)
 import Html.Events exposing (onInput)
 
-loginView : LoginInfo -> Html Msg
-loginView l = 
+loginView : User -> Html Msg
+loginView u = 
     div [class "login-wrapper"] [
       div [class "login-content"] [
       h1 [] [text "Login"],
-      input [class "login-input", type_ "text", value l.username, placeholder "Username", onInput SetUsername] [],
-      input [class "login-input", type_ "password", value l.password, placeholder "Password", onInput SetPassword] [],
+      input [class "login-input", type_ "text", value u.name, placeholder "Username", onInput SetUsername] [],
+      input [class "login-input", type_ "password", value u.password, placeholder "Password", onInput SetPassword] [],
       p [] [text "Error message"]
       ],
       button [class "primary-button login", onClick Submit] [text "Login"]

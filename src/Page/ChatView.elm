@@ -11,50 +11,41 @@ import Html.Events exposing (targetValue)
 import Maybe exposing (withDefault)
 import Types exposing (..)
 
-chatView : ChatInfo -> Html Msg
-chatView data = 
+chatView : Chat -> List ChatPreview -> Html Msg
+chatView activeChat chatList = 
   div [class "chat-container"] [
     div [class "chat-list"][
-      contactList data.chatList data 
+      contactList chatList activeChat
     ],
     div [ class "current-chat"][
-      currentChatPartnerView data.currentChat,
+      currentChatPartnerView activeChat,
 
-      --Map over messages an put it in a div
-      List.map message (List.reverse (data.currentChat.messages)) |> div [class "chat"],
+      --Map over ChatPrevies an put it in a div
+      List.map chatPreviews (List.reverse (chatList)) |> div [class "chat"],
     
     inputField
     ]
   ]
 
-contactList : List Chat -> ChatInfo -> Html Msg
-contactList chats chatInfo = 
+contactList : List ChatPreview -> Chat -> Html Msg
+contactList chats activeChat = 
   case chats of 
     [] -> div [] []
-    x::xs -> div [] [contactPerson chatInfo x, contactList xs chatInfo]
+    x::xs -> div [] [contactPerson x activeChat, contactList xs activeChat]
 
 
-contactPerson :  ChatInfo -> Chat ->  Html Msg
-contactPerson chatInfo chat  = a [if chatInfo.currentChat.chatPartner.id == chat.chatPartner.id then class "contact-preview active" else class "contact-preview" ] [
+contactPerson :  ChatPreview -> Chat ->  Html Msg
+contactPerson chatPreview activeChat = a [if chatPreview.userId == activeChat.chatPartner.user.id then class "contact-preview active" else class "contact-preview" ] [
           img [src "https://www.w3schools.com/howto/img_avatar.png", class "avatar"] [],
           div [class "contact-details"] [
-           h2 [] [text chat.chatPartner.name],
-           p [] [text (withDefault "Test"(
-            --get last element of messages list
-            List.head (List.reverse chat.messages)
-            |> Maybe.map .content 
-           ))]
-           ]
-           ]
-getFirst : List Message -> String
-getFirst messages = 
-  case messages of
-    [] -> "Keine Nachrichten"
-    x::xs -> x.content
+           h2 [] [text chatPreview.userId],
+           p [] [ text chatPreview.latestMessage.text]
+           ]]
+           
 
-message : Message -> Html Msg
-message mes = div [class "chat-item"] [
-           p [] [text mes.content]
+chatPreviews : ChatPreview -> Html Msg
+chatPreviews mes = div [class "chat-item"] [
+           p [] [text mes.latestMessage.text]
            ]
 
 inputField : Html Msg
@@ -69,7 +60,7 @@ currentChatPartnerView : Chat -> Html Msg
 currentChatPartnerView chat = a [class "contact-preview large", href "https://www.w3schools.com/howto/img_avatar.png"] [
           img [src "https://www.w3schools.com/howto/img_avatar.png", class "avatar"] [],
           div [class "contact-details"] [
-           h1 [] [text chat.chatPartner.name],
+           h1 [] [text chat.chatPartner.user.id],
            p [] [text "online"]
            ]
            ]

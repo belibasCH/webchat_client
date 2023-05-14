@@ -27,5 +27,5 @@ profileView user =
         label [] [text "Confirm new password"],
         input [class "form-control", type_ "text",  onInput ChangeUserName] []
      ],
-     p [] [text (String.fromInt user.id)]
+     p [] [text user.id]
   ]

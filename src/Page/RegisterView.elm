@@ -8,8 +8,8 @@ import Html exposing (input, Attribute)
 import Types exposing (..)
 import Html.Events exposing (onInput)
 
-registerView : LoginInfo -> Html Msg
-registerView l = 
+registerView : Html Msg
+registerView = 
       div [class "login-wrapper"] [
       div [class "login-content"] [
       h1 [] [text "Register"],
@@ -19,7 +19,7 @@ registerView l =
       input [class "login-input", type_ "password", placeholder "Confirm password", onInput SetPassword] [],
       p [] [text "Error message"]
       ],
-      button [class "primary-button login", onClick Submit] [text "Login"]
+      button [class "primary-button login", onClick Submit] [text "Create account"]
     ]
   
 

@@ -11,7 +11,7 @@ import Html.Events exposing (targetValue)
 import Maybe exposing (withDefault)
 import Types exposing (..)
 
-newChatView : ChatInfo -> Html Msg
+newChatView : List UserPreview -> Html Msg
 newChatView data = 
   div [] [
     text "New ChatView"

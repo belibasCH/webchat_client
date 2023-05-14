@@ -1,5 +1,15 @@
 module Types exposing (..)
+import Html exposing (text)
 
+type alias Model = {
+  page : Page,
+  user : User,
+  users : List UserPreview,
+  activeChat : Chat,
+  chats : List ChatPreview,
+  revicedMessageFromServer : String
+
+  }
 type Msg
   =   Submit
     |   Recv String
@@ -10,16 +20,22 @@ type Msg
     |   ChangeUserName String
     |   ChangePassword String
   
-
-type alias LoginInfo = {
-  username : String,
-  password : String
-  }
 type alias ChatInfo = {
   currentText : String,
   currentChat : Chat,
   chatList : List Chat
   }
+type alias UserPreview = {
+    user : User,
+    isonline : Bool
+    }
+
+type alias ChatPreview = {
+    userId : String,
+    latestMessage : Message,
+    totalMessageCount : Int,
+    unreadMessageCount : Int
+    }
 
 
 type Page 
@@ -30,16 +46,23 @@ type Page
     | ProfilePage
 
 type alias Chat = { 
-  chatPartner : User, 
+  chatPartner : UserPreview, 
   messages : List Message
   }
 type alias Message = {
-  content : String,
-  timestamp : String
+  id : String,
+  senderId : String,
+  reciverId : String,
+  text : String,
+  sentAt : DateTime,
+  recivedAt : DateTime,
+  readAt : DateTime
   }
 type alias User = {
   name : String,
-  id : Int,
+  id : String,
+  password: String,
   avatar : String
   }
+type alias DateTime = String
 

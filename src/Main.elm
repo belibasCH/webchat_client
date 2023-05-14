@@ -2,7 +2,7 @@ port module Main exposing (..)
 
 import Browser
 import Html exposing (Html, button, div, text, li, h2, a, h1 , h3, ul,p,nav,textarea, img)
-import Html.Events exposing (onClick)
+import Html.Events exposing (..)
 import Html.Attributes exposing (class)
 import Html.Attributes exposing (..)
 import Html exposing (input, Attribute)
@@ -37,87 +37,66 @@ port messageReceiver : (String -> msg) -> Sub msg
 
 initialModel : (Model, Cmd Msg)
 initialModel = ({
-  page = LoginPage, 
-  recivedMessage = "",
-  chatInfo = {
-    currentText = "", 
-    currentChat = currtenChat, 
-    chatList = chatList}, 
-  loginInfo = {username = "", password = ""},
-  currentUser = {name = "Name Person1", id = 1, avatar = "https://www.w3schools.com/howto/img_avatar.png"}  },
-  Cmd.none)
+  page = LoginPage,
+  user = initialUser,
+  users = [exampleUserPreview, exampleUserPreview],
+  activeChat = exampleChat,
+  chats = [exampleChatPreview, exampleChatPreview],
+  revicedMessageFromServer = "Response" },  Cmd.none)
 
+initialUser : User
+initialUser = {name = "Name Person1", id = "314258b5-a16f-46fe-93e5-82ca0e26e302", password ="",avatar = "https://www.w3schools.com/howto/img_avatar.png"}
 
+exampleUserPreview : UserPreview
+exampleUserPreview = {user = initialUser, isonline = True}
 
-type alias Model = {
-  page : Page,
-  recivedMessage : String,
-  loginInfo : LoginInfo,
-  chatInfo : ChatInfo,
-  currentUser : User
+exampleMessage : Message
+exampleMessage = {
+  id = "12345", 
+  senderId = "314258b5-a16f-46fe-93e5-82ca0e26e302",
+  reciverId = "314258b5-a16f-46fe-93e5-82ca0e26e301",
+  text = "Nachricht 1",
+  sentAt = "12:00 Uhr",
+  recivedAt = "13:00 Uhr",
+  readAt = "14:00 Uhr"
   }
 
-
-currtenChat : Chat
-currtenChat = { chatPartner = { 
-    name = "Name Person1",
-    id = 1, 
-    avatar = "https://www.w3schools.com/howto/img_avatar.png"}, 
-    messages = [
-      { content = "Nachricht 1 P1", timestamp = "12:00 Uhr"}, 
-      { content = "Nachricht 2 p2", timestamp = "12:00 Uhr"}
-      ]
+exampleChat : Chat
+exampleChat = {
+  messages = [exampleMessage, exampleMessage, exampleMessage],
+  chatPartner = exampleUserPreview
+  }
+exampleChatPreview : ChatPreview
+exampleChatPreview = {
+  userId = "314258b5-a16f-46fe-93e5-82ca0e26e301",
+  latestMessage = exampleMessage,
+  totalMessageCount = 3,
+  unreadMessageCount = 1 
   }
 --page  = LoginPage {username = "", password = ""
   
-chatList : List Chat
-chatList = [
-  { chatPartner = { 
-    name = "Name Person1",
-    id = 1, 
-    avatar = "https://www.w3schools.com/howto/img_avatar.png"}, 
-    messages = [
-      { content = "Nachricht 1 P1", timestamp = "12:00 Uhr"}, 
-      { content = "Nachricht 2 p2", timestamp = "12:00 Uhr"}
-      ]
-  },
-  { chatPartner = { 
-    name = "Name Person2", 
-    id = 2,
-    avatar = "https://www.w3schools.com/howto/img_avatar.png"}, 
-    messages = [
-      { content = "Nachricht 1 - P2", timestamp = "12:00 Uhr"}, 
-      { content = "Nachricht 2 -p2", timestamp = "12:00 Uhr"},
-      { content = "Nachricht 3 -p2", timestamp = "12:00 Uhr"}
-      ]
-  }]
-
-
 
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case (model.page, msg) of
-  (_, SetUsername u) -> ({model | loginInfo = {username = u, password = model.loginInfo.password}}, Cmd.none)
-  (_, SetPassword p) -> ({model | loginInfo = {username = model.loginInfo.username, password = p}}, Cmd.none)
-  (_, ValidatePassword p)-> ({model | loginInfo = {username = model.loginInfo.username, password = p}}, Cmd.none)
-  (_, Submit) -> ({model | page = ChatPage}, sendMessage (encode model.loginInfo.username))
-  (_, Recv s) -> ({model | page = ChatPage , recivedMessage = s}, Cmd.none)
+  (_, SetUsername u) -> ({model | user = {name = u, id = model.user.id, password = model.user.password, avatar = model.user.avatar}}, Cmd.none)
+  (_, SetPassword p) -> ({model | user = {name = model.user.name, id = model.user.id, password = p, avatar = model.user.avatar}}, Cmd.none)
+  (_, ValidatePassword p)-> ({model | user = {name = model.user.name, id = model.user.id, password = p, avatar = model.user.avatar}}, Cmd.none)
+  (_, Submit) -> ({model | page = ChatPage}, sendMessage <| (encode model.user.name))
+  (_, Recv s) -> ({model | page = ChatPage , revicedMessageFromServer = s}, Cmd.none)
   (_, SetPage p) -> ({model | page = p}, Cmd.none)
-  (_, ChangeUserName u) -> ({model | currentUser = {name = u, id = model.currentUser.id, avatar = model.currentUser.avatar}}, Cmd.none)
-  (_, ChangePassword p) -> ({model | currentUser = {name = model.currentUser.name, id = model.currentUser.id, avatar = model.currentUser.avatar}}, Cmd.none)
+  (_, ChangeUserName u) -> ({model | user = {name = u, id = model.user.id, password = model.user.password, avatar = model.user.avatar}}, Cmd.none)
+  (_, ChangePassword p) -> ({model | user = {name = model.user.name, id = model.user.id, password = p, avatar = model.user.avatar}}, Cmd.none)
 
 encode : String -> E.Value
 encode s =
   E.object
-    [ ("type", E.string s)
-    , ("username", E.string s)
-    , ("password", E.string s)
+    [ ("type", E.string "create_user")
+    , ("username", E.string "testuser")
+    , ("password", E.string "1234")
     ]
 
-    --TBD
-   -- ChangeText  s -> { model | page = { model.page | currentText = s}}
-    --SetChat chat -> { model | page = ChatPage {currentText = "", currentChat = chat, chatList = model.page.chatList}}
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
@@ -125,16 +104,17 @@ subscriptions _ =
 
 view : Model -> Html Msg
 view m = case m.page of
-  LoginPage -> withLoginContainer m (Login.loginView m.loginInfo)
-  RegisterPage -> withLoginContainer m (Register.registerView m.loginInfo)
-  ChatPage -> withContainer m (Chat.chatView m.chatInfo)
-  NewChatPage -> withContainer m (NewChat.newChatView m.chatInfo)
-  ProfilePage -> withContainer m (Profile.profileView m.currentUser)
+  LoginPage -> withLoginContainer m (Login.loginView m.user)
+  RegisterPage -> withLoginContainer m (Register.registerView)
+  ChatPage -> withContainer m (Chat.chatView m.activeChat m.chats)
+  NewChatPage -> withContainer m (NewChat.newChatView m.users)
+  ProfilePage -> withContainer m (Profile.profileView m.user)
 
 
 withLoginContainer : Model -> Html Msg  -> Html Msg
 withLoginContainer model content = 
   div [] [
+    
     div [class "login-container"] [
       nav [class "login-nav"] [
         ul [class "login-nav-list"] [
@@ -162,6 +142,7 @@ withLoginContainer model content =
 withContainer : Model -> Html Msg  -> Html Msg
 withContainer model content = 
  div [ class "container"] [
+  text model.revicedMessageFromServer,
   navigation model.page,
   content,
   secureSign
