@@ -36,10 +36,10 @@ type alias UserPreview = {
     }
 
 type alias ChatPreview = {
-    userId : String,
-    latestMessage : Message,
-    totalMessageCount : Int,
-    unreadMessageCount : Int
+    user_id : String,
+    latest_message : Message,
+    total_message_count : Int,
+    unread_message_count : Int
     }
 
 
@@ -56,12 +56,12 @@ type alias Chat = {
   }
 type alias Message = {
   id : String,
-  senderId : String,
-  reciverId : String,
+  sender_id : String,
+  receiver_id : String,
   text : String,
-  sentAt : DateTime,
-  recivedAt : DateTime,
-  readAt : DateTime
+  sent_at : String,
+  received_at : Maybe String,
+  read_at : Maybe String
   }
 type alias User = {
   name : String,
@@ -77,6 +77,10 @@ type alias UserShort = {
 type alias LoginSucceded = {
   msgType : String,
   user : UserShort
+  }
+type alias ChatsLoaded = {
+  msgType : String,
+  chats : List ChatPreview
   }
 type alias DateTime = String
 

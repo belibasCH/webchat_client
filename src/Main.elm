@@ -24,6 +24,7 @@ import Json.Decode as D
 import Services.JsonEncoder as ToJson exposing (..)
 import Html.Attributes exposing (classList)
 import Json.Decode exposing (Error)
+import Json.Decode exposing (decodeString)
 
 main : Program () Model Msg
 main =
@@ -47,7 +48,7 @@ initialModel = ({
   revicedMessageFromServer = {msgType = "nothing"}},  Cmd.none)
 
 initialUser : User
-initialUser = {name = "Name Person1", id = "314258b5-a16f-46fe-93e5-82ca0e26e302", password ="",avatar = "https://www.w3schools.com/howto/img_avatar.png"}
+initialUser = {name = "", id = "", password ="",avatar = "https://www.w3schools.com/howto/img_avatar.png"}
 
 exampleUserPreview : UserPreview
 exampleUserPreview = {user = initialUser, isonline = True}
@@ -56,13 +57,13 @@ exampleRecivedMessageFromServer : LoginSucceded
 exampleRecivedMessageFromServer = { msgType = "", user = {id = "exID", name = "ExName"}}
 exampleMessage : Message
 exampleMessage = {
-  id = "12345", 
-  senderId = "314258b5-a16f-46fe-93e5-82ca0e26e302",
-  reciverId = "314258b5-a16f-46fe-93e5-82ca0e26e301",
-  text = "Nachricht 1",
-  sentAt = "12:00 Uhr",
-  recivedAt = "13:00 Uhr",
-  readAt = "14:00 Uhr"
+  id = "ExID", 
+  sender_id = "ExSenID",
+  receiver_id = "ExRecID",
+  text = "Expample Text",
+  sent_at = "ExSentAt",
+  received_at = Just "ExRecAt",
+  read_at = Just "ExReadAt"
   }
 
 exampleChat : Chat
@@ -72,17 +73,17 @@ exampleChat = {
   }
 exampleChatPreview : ChatPreview
 exampleChatPreview = {
-  userId = "DefaultUser",
-  latestMessage = exampleMessage,
-  totalMessageCount = 3,
-  unreadMessageCount = 1 
+  user_id = "DefaultUser",
+  latest_message = exampleMessage,
+  total_message_count = 3,
+  unread_message_count = 1 
   }
 errorChatPreview : ChatPreview
 errorChatPreview = {
-  userId = "ErrorUser",
-  latestMessage = exampleMessage,
-  totalMessageCount = 3,
-  unreadMessageCount = 1 
+  user_id = "ErrorUser",
+  latest_message = exampleMessage,
+  total_message_count = 3,
+  unread_message_count = 1 
   }
 --page  = LoginPage {username = "", password = ""
   
@@ -96,7 +97,7 @@ update msg model =
   (_, ValidatePassword p)-> ({model | user = {name = model.user.name, id = model.user.id, password = p, avatar = model.user.avatar}}, Cmd.none)
   (_, SubmitRegistration) -> (model, sendMessage (ToJson.encodeRegisterUser model.user))
   (_, SubmitLogin) -> ( {model | page = ChatPage} , sendMessage (ToJson.encodeLogin model.user))
-  (_, Recv s) -> (manageAnswers (returnTypeSave (D.decodeString decodeType s)) s model, Cmd.none)
+  (_, Recv s) -> manageAnswers (returnTypeSave (D.decodeString decodeType s)) s model
   (_, SetPage p) -> ({model | page = p}, Cmd.none)
   (_, ChangeUserName u) -> ({model | user = {name = u, id = model.user.id, password = model.user.password, avatar = model.user.avatar}}, Cmd.none)
   (_, ChangePassword p) -> ({model | user = {name = model.user.name, id = model.user.id, password = p, avatar = model.user.avatar}}, Cmd.none)
@@ -104,26 +105,45 @@ update msg model =
   (_, LoadChats) -> (model, sendMessage (ToJson.encodeLoadChats))
 --returnSave (D.decodeString decodeType s)
 
-manageAnswers : Answertype -> String -> Model -> Model
+manageAnswers : Answertype -> String -> Model -> (Model, Cmd Msg)
 manageAnswers t data model = case t.msgType of 
-   "login_succeeded" -> {model | page = ProfilePage}
-   "chats_loaded" -> {model | chats = returnChats (D.decodeString decodeChats data)}
-   _ -> model
+   "login_succeeded" -> ({model | page = ProfilePage, revicedMessageFromServer = {msgType = "login_succeeded"}}, Cmd.none)
+   "chats_loaded" -> ({model | chats = returnChats (D.decodeString decodeChatsLoaded data), revicedMessageFromServer = {msgType = "chats_loaded"}}, Cmd.none)
+   _ -> (model, Cmd.none)
 
-returnChats : Result Error (List ChatPreview) -> List ChatPreview
+returnChats : Result Error ChatsLoaded -> List ChatPreview
 returnChats r = case r of
-  Ok ok -> ok
-  Err e -> [errorChatPreview]
+  Ok ok -> ok.chats
+  Err e -> [{errorChatPreview | user_id = Debug.toString e}]
+
+decodeChatsLoaded : D.Decoder ChatsLoaded
+decodeChatsLoaded = D.map2 ChatsLoaded 
+  (D.field "type" D.string) 
+  (D.field "chats" decodeChats)
+
 decodeChats : D.Decoder (List ChatPreview)
 decodeChats = D.list decodeChatPreview
 
 decodeChatPreview : D.Decoder ChatPreview
-decodeChatPreview = D.map4 ChatPreview (D.field "user_id" D.string) (D.field "latest_message" decodeMessage) (D.field "total_message_count" D.int) (D.field "unread_message_count" D.int)
+decodeChatPreview = D.map4 ChatPreview 
+  (D.field "user_id" D.string) 
+  (D.field "latest_message" decodeMessage) 
+  (D.field "total_message_count" D.int) 
+  (D.field "unread_message_count" D.int)
 
 decodeMessage : D.Decoder Message
-decodeMessage = D.map7 Message (D.field "id" D.string) (D.field "sender_id" D.string) (D.field "reciver_id" D.string) (D.field "text" D.string) (D.field "sent_at" D.string) (D.field "recived_at" D.string) (D.field "read_at" D.string)
+decodeMessage = D.map7 Message 
+  (D.field "id" D.string) 
+  (D.field "sender_id" D.string) 
+  (D.field "receiver_id" D.string) 
+  (D.field "text" D.string) 
+  (D.field "sent_at" D.string) 
+  (D.field "received_at" (D.nullable D.string)) 
+  (D.field "read_at" (D.nullable D.string)) 
+  
 decodeType : D.Decoder Answertype
 decodeType = D.map Answertype (D.field "type" D.string)
+
 returnTypeSave : Result Error Answertype -> Answertype
 returnTypeSave r = case r of
   Ok ok -> ok
