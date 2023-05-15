@@ -100,11 +100,6 @@ update msg model =
 --   (D.field "id" D.string)
 
 
-
-
-
-
-
 -- {
 --     "type": "login_succeeded",
     
@@ -112,14 +107,6 @@ update msg model =
 --     "user": User
 -- }
 
-
--- quoteDecoder : Decoder Quote
--- quoteDecoder =
---   map4 Quote
---     (field "quote" string)
---     (field "source" string)
---     (field "author" string)
---     (field "year" int)
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =

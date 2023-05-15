@@ -15,14 +15,14 @@ chatView : Chat -> List ChatPreview -> Html Msg
 chatView activeChat chatList = 
   div [class "chat-container"] [
     div [class "chat-list"][
-      contactList chatList activeChat
+      contactList chatList activeChat,
+      button [class "primary-button", onClick LoadChats] [text "loadchats"]
     ],
     div [ class "current-chat"][
       currentChatPartnerView activeChat,
-
       --Map over ChatPrevies an put it in a div
       List.map chatPreviews (List.reverse (chatList)) |> div [class "chat"],
-    
+
     inputField
     ]
   ]

@@ -13,19 +13,26 @@ import Types exposing (..)
 
 profileView : User -> Html Msg
 profileView user = 
-  div [class "profile-container"] [
+  div [class "change-profile-box"] [
+    img [src user.avatar, class "profile-avatar"] [],
+    div [class "profile-details"][
     h1 [] [text "Profile"],
+    p [] [text ("Id: "++user.id)],
+    div [class "changeProfilebox"] [
     div [class "input-group"] [
       label [] [text "Name"],
       input [class "form-control", type_ "text", value user.name, onInput ChangeUserName] []
     ],
+    button [class "new", onClick SendNewPW] [text "save"]
+    ],
+    div [class "change-profile-box"] [
     div [class "input-group"] [
       label [] [text "Set new password"],
       input [class "form-control", type_ "text", placeholder "***", onInput ChangePassword] []
     ],
-    div [class "input-group"] [
-        label [] [text "Confirm new password"],
-        input [class "form-control", type_ "text",  onInput ChangeUserName] []
-     ],
-     p [] [text user.id]
+    button [class "new", onClick SendNewPW] [text "save"]
+    ]
+    ]
+     
   ]
+  

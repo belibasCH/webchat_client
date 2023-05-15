@@ -1,0 +1,7 @@
+{
+    "type": "create_user",
+ 
+    "username": "elias123",
+
+    "password": "1234"
+}

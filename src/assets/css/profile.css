@@ -1,0 +1,27 @@
+.profile-container {
+    padding: var(--default-padding);
+    display: flex;
+    gap: var(--default-padding);
+    justify-content: center;
+    align-items: center;
+
+}
+.profile-details {
+    
+
+}
+.profile-avatar {
+    height: 50%;
+    border-radius: 50%;
+
+}
+.input-group {
+    display: flex;
+    flex-direction: column;
+    padding-bottom: var(--default-padding);
+}
+.change-profile-box {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--default-padding);
+}
