@@ -19,7 +19,7 @@ registerView =
       input [class "login-input", type_ "password", placeholder "Confirm password", onInput SetPassword] [],
       p [] [text "Error message"]
       ],
-      button [class "primary-button login", onClick Submit] [text "Create account"]
+      button [class "primary-button login", onClick SubmitRegistration] [text "Create account"]
     ]
   
 

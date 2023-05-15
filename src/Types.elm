@@ -11,7 +11,8 @@ type alias Model = {
 
   }
 type Msg
-  =   Submit
+  =   SubmitRegistration
+    |   SubmitLogin
     |   Recv String
     |   SetUsername String
     |   SetPassword String
@@ -19,6 +20,8 @@ type Msg
     |   SetPage Page
     |   ChangeUserName String
     |   ChangePassword String
+    |   SendNewPW
+    |   LoadChats
   
 type alias ChatInfo = {
   currentText : String,

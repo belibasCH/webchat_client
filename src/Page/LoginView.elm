@@ -17,6 +17,6 @@ loginView u =
       input [class "login-input", type_ "password", value u.password, placeholder "Password", onInput SetPassword] [],
       p [] [text "Error message"]
       ],
-      button [class "primary-button login", onClick Submit] [text "Login"]
+      button [class "primary-button login", onClick SubmitLogin] [text "Login"]
     ]
   
