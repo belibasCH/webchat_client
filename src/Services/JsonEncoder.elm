@@ -64,6 +64,14 @@ encodeLoadMessages user_id =
     [ ("type", E.string "load_chat")
     , ("user_id", E.string user_id)
     ]
+
+encodeSendMessage : String -> String -> E.Value
+encodeSendMessage receiver_id text =
+  E.object
+    [ ("type", E.string "send")
+    , ("receiver_id", E.string receiver_id)
+    , ("text", E.string text)
+    ]
     
 returnChats : Result Error ChatsLoaded -> List ChatPreview
 returnChats r = case r of
@@ -74,6 +82,12 @@ returnUsers : Result Error UsersLoaded -> List UserPreview
 returnUsers r = case r of
   Ok ok -> ok.users
   Err e -> [{user = {id = Debug.toString e, name = Debug.toString e}, is_online = False}]
+
+returnUser : Result Error LoginSucceded ->  User
+returnUser r = case r of
+  Ok ok -> ok.user
+  Err e -> {id = Debug.toString e, name = Debug.toString e}
+
 
 decodeChatsLoaded : D.Decoder ChatsLoaded
 decodeChatsLoaded = D.map2 ChatsLoaded 

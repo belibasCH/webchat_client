@@ -11,6 +11,7 @@ type alias Model = {
   users : List UserPreview,
   activeChatPartner : User,
   messages : List Message,
+  currentText : String,
   chats : List ChatPreview,
   revicedMessageFromServer : Answertype
   }
@@ -27,6 +28,8 @@ type Msg
     |   SendNewPW
     |   StartChat String
     |   LoadMessages ChatPreview
+    |   ChatInput String
+    |   SendChatMessage
   
 type alias ChatInfo = {
   currentText : String,

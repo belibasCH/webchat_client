@@ -40,7 +40,6 @@
     align-self: flex-start;
 }
 .chat .chat-item.me {
-    background-color: red;
     align-self: flex-end;
 }
 

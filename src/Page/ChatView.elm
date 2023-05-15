@@ -11,8 +11,8 @@ import Html.Events exposing (targetValue)
 import Maybe exposing (withDefault)
 import Types exposing (..)
 
-chatView : User -> List Message -> List ChatPreview -> Html Msg
-chatView partner messages chatList = 
+chatView : User -> List Message -> List ChatPreview -> Model-> Html Msg
+chatView partner messages chatList model = 
   div [class "chat-container"] [
     div [class "chat-list"]
       (List.map (\x -> contactPerson x (Chat partner messages)) chatList)
@@ -20,13 +20,13 @@ chatView partner messages chatList =
     div [ class "current-chat"][
       currentChatPartnerView partner,
       --Map over Messages an put it in a div
-      div [class "chat"] (List.map messageView (List.reverse(messages))),
+      div [class "chat"] (List.map (messageView model) (List.reverse(messages))  ),
       inputField
     ]
   ]
 
-messageView : Message -> Html Msg
-messageView mes = div [class "chat-item"] [
+messageView : Model-> Message -> Html Msg
+messageView model mes = div [classList [( "chat-item", True),("me", model.user.id == mes.sender_id)]] [
            p [] [text mes.text]
            ]
 
@@ -53,8 +53,8 @@ contactPerson chatPreview activeChat = a [ if chatPreview.user.id == activeChat.
 
 inputField : Html Msg
 inputField = div [class "chat-input"] [
-       textarea [ id "message", placeholder "Nachricht"] []
-    , button [class "primary-button"] [ div [class "send-icon"] [] ]
+       textarea [ id "message", placeholder "Nachricht", onInput ChatInput] []
+    , button [class "primary-button"] [ div [class "send-icon", onClick SendChatMessage ] [] ]
     ]
 
 

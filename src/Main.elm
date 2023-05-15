@@ -23,6 +23,8 @@ import Json.Encode as E
 import Json.Decode as D
 import Services.JsonEncoder as ToJson exposing (..)
 import Html.Attributes exposing (classList)
+import Platform exposing (sendToApp)
+import Html exposing (s)
 
 
 main : Program () Model Msg
@@ -45,6 +47,7 @@ initialModel = ({
   users = [exampleUserPreview, exampleUserPreview],
   activeChatPartner = initialUser,
   messages = [],
+  currentText = "",
   chats = [exampleChatPreview, exampleChatPreview],
   revicedMessageFromServer = {msgType = "nothing"}},  Cmd.none)
 
@@ -100,11 +103,13 @@ update msg model =
     page = ChatPage, 
     activeChatPartner = chatPreview.user  }, 
     sendMessage (ToJson.encodeLoadMessages chatPreview.user.id))
+  (_, SendChatMessage) -> ({model | page = ChatPage, currentText=""}, sendMessage (ToJson.encodeSendMessage model.activeChatPartner.id model.currentText))
+  (_, ChatInput i) -> ({model | currentText=i}, Cmd.none)
 
 
 manageAnswers : Answertype -> String -> Model -> (Model, Cmd Msg)
 manageAnswers t data model = case t.msgType of 
-   "login_succeeded" -> ({model | page = ChatPage, revicedMessageFromServer = {msgType = "login_succeeded"}}, sendMessage (ToJson.encodeLoadChats))
+   "login_succeeded" -> ({model | page = ChatPage, user = returnUser (D.decodeString decodeLoginSucceded data), revicedMessageFromServer = {msgType = "login_succeeded"}}, sendMessage (ToJson.encodeLoadChats))
    "chats_loaded" -> ({model | 
     chats = returnChats (D.decodeString decodeChatsLoaded data), 
     revicedMessageFromServer = {msgType = "chats_loaded"}
@@ -116,6 +121,7 @@ manageAnswers t data model = case t.msgType of
     messages = returnLoadMessages (D.decodeString decodeMessageLoaded data), 
     revicedMessageFromServer = {msgType = "chat_loaded"}}, 
     Cmd.none)
+
    _ -> (model, Cmd.none)
 
 changePage : Page -> Model -> (Model, Cmd Msg)
@@ -135,7 +141,7 @@ view : Model -> Html Msg
 view m = case m.page of
   LoginPage -> withLoginContainer m (Login.loginView m.user)
   RegisterPage -> withLoginContainer m (Register.registerView)
-  ChatPage -> withContainer m (Chat.chatView m.activeChatPartner m.messages m.chats)
+  ChatPage -> withContainer m (Chat.chatView m.activeChatPartner m.messages m.chats m)
   NewChatPage -> withContainer m (NewChat.newChatView m.users)
   ProfilePage -> withContainer m (Profile.profileView m.user)
 
