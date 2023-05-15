@@ -23,8 +23,7 @@ import Json.Encode as E
 import Json.Decode as D
 import Services.JsonEncoder as ToJson exposing (..)
 import Html.Attributes exposing (classList)
-import Json.Decode exposing (Error)
-import Json.Decode exposing (decodeString)
+
 
 main : Program () Model Msg
 main =
@@ -42,16 +41,17 @@ initialModel : (Model, Cmd Msg)
 initialModel = ({
   page = LoginPage,
   user = initialUser,
+  password = "",
   users = [exampleUserPreview, exampleUserPreview],
   activeChat = exampleChat,
   chats = [exampleChatPreview, exampleChatPreview],
   revicedMessageFromServer = {msgType = "nothing"}},  Cmd.none)
 
 initialUser : User
-initialUser = {name = "", id = "", password ="",avatar = "https://www.w3schools.com/howto/img_avatar.png"}
+initialUser = {name = "", id = ""}
 
 exampleUserPreview : UserPreview
-exampleUserPreview = {user = initialUser, isonline = True}
+exampleUserPreview = {user = initialUser, is_online = True}
 
 exampleRecivedMessageFromServer : LoginSucceded
 exampleRecivedMessageFromServer = { msgType = "", user = {id = "exID", name = "ExName"}}
@@ -78,13 +78,7 @@ exampleChatPreview = {
   total_message_count = 3,
   unread_message_count = 1 
   }
-errorChatPreview : ChatPreview
-errorChatPreview = {
-  user_id = "ErrorUser",
-  latest_message = exampleMessage,
-  total_message_count = 3,
-  unread_message_count = 1 
-  }
+
 --page  = LoginPage {username = "", password = ""
   
 
@@ -92,81 +86,31 @@ errorChatPreview = {
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case (model.page, msg) of
-  (_, SetUsername u) -> ({model | user = {name = u, id = model.user.id, password = model.user.password, avatar = model.user.avatar}}, Cmd.none)
-  (_, SetPassword p) -> ({model | user = {name = model.user.name, id = model.user.id, password = p, avatar = model.user.avatar}}, Cmd.none)
-  (_, ValidatePassword p)-> ({model | user = {name = model.user.name, id = model.user.id, password = p, avatar = model.user.avatar}}, Cmd.none)
-  (_, SubmitRegistration) -> (model, sendMessage (ToJson.encodeRegisterUser model.user))
-  (_, SubmitLogin) -> ( {model | page = ChatPage} , sendMessage (ToJson.encodeLogin model.user))
+  (_, SetUsername u) -> ({model | user = {name = u, id = model.user.id}}, Cmd.none)
+  (_, SetPassword p) -> ({model | user = {name = model.user.name, id = model.user.id}, password = p}, Cmd.none)
+  (_, ValidatePassword p)-> ({model | user = {name = model.user.name, id = model.user.id}}, Cmd.none)
+  (_, SubmitRegistration) -> (model, sendMessage (ToJson.encodeRegisterUser model.user model.password))
+  (_, SubmitLogin) -> ( {model | page = ChatPage} , sendMessage (ToJson.encodeLogin model.user model.password))
   (_, Recv s) -> manageAnswers (returnTypeSave (D.decodeString decodeType s)) s model
-  (_, SetPage p) -> ({model | page = p}, Cmd.none)
-  (_, ChangeUserName u) -> ({model | user = {name = u, id = model.user.id, password = model.user.password, avatar = model.user.avatar}}, Cmd.none)
-  (_, ChangePassword p) -> ({model | user = {name = model.user.name, id = model.user.id, password = p, avatar = model.user.avatar}}, Cmd.none)
+  (_, SetPage p) -> changePage p model
+  (_, ChangeUserName u) -> ({model | user = {name = u, id = model.user.id}}, Cmd.none)
+  (_, ChangePassword p) -> ({model | user = {name = model.user.name, id = model.user.id}, password = p}, Cmd.none)
   (_,  SendNewPW) -> (model, Cmd.none)
-  (_, LoadChats) -> (model, sendMessage (ToJson.encodeLoadChats))
---returnSave (D.decodeString decodeType s)
 
 manageAnswers : Answertype -> String -> Model -> (Model, Cmd Msg)
 manageAnswers t data model = case t.msgType of 
-   "login_succeeded" -> ({model | page = ProfilePage, revicedMessageFromServer = {msgType = "login_succeeded"}}, Cmd.none)
+   "login_succeeded" -> ({model | page = ProfilePage, revicedMessageFromServer = {msgType = "login_succeeded"}}, sendMessage (ToJson.encodeLoadChats))
    "chats_loaded" -> ({model | chats = returnChats (D.decodeString decodeChatsLoaded data), revicedMessageFromServer = {msgType = "chats_loaded"}}, Cmd.none)
+   "users_loaded" -> ({model | page = NewChatPage, users = returnUsers (D.decodeString decodeUsersLoaded data), revicedMessageFromServer = {msgType = "users_loaded"}}, Cmd.none)
    _ -> (model, Cmd.none)
 
-returnChats : Result Error ChatsLoaded -> List ChatPreview
-returnChats r = case r of
-  Ok ok -> ok.chats
-  Err e -> [{errorChatPreview | user_id = Debug.toString e}]
-
-decodeChatsLoaded : D.Decoder ChatsLoaded
-decodeChatsLoaded = D.map2 ChatsLoaded 
-  (D.field "type" D.string) 
-  (D.field "chats" decodeChats)
-
-decodeChats : D.Decoder (List ChatPreview)
-decodeChats = D.list decodeChatPreview
-
-decodeChatPreview : D.Decoder ChatPreview
-decodeChatPreview = D.map4 ChatPreview 
-  (D.field "user_id" D.string) 
-  (D.field "latest_message" decodeMessage) 
-  (D.field "total_message_count" D.int) 
-  (D.field "unread_message_count" D.int)
-
-decodeMessage : D.Decoder Message
-decodeMessage = D.map7 Message 
-  (D.field "id" D.string) 
-  (D.field "sender_id" D.string) 
-  (D.field "receiver_id" D.string) 
-  (D.field "text" D.string) 
-  (D.field "sent_at" D.string) 
-  (D.field "received_at" (D.nullable D.string)) 
-  (D.field "read_at" (D.nullable D.string)) 
-  
-decodeType : D.Decoder Answertype
-decodeType = D.map Answertype (D.field "type" D.string)
-
-returnTypeSave : Result Error Answertype -> Answertype
-returnTypeSave r = case r of
-  Ok ok -> ok
-  Err e -> Answertype "Error"
-  
-
-decodeLoginSucceded : D.Decoder LoginSucceded
-decodeLoginSucceded = D.map2 LoginSucceded (D.field "type" D.string) (D.field "user" decodeUser)
-    
-decodeUser : D.Decoder UserShort
-decodeUser = D.map2 UserShort (D.field "id" D.string) (D.field "name" D.string) 
-
-returnSave : Result Error LoginSucceded -> LoginSucceded
-returnSave s = case s of
-  Ok ok -> ok
-  Err e -> LoginSucceded "Error" {id = "Error", name = "Error"}
-
--- {
---     "type": "login_succeeded",
-    
---     // The authenticated user.
---     "user": User
--- }
+changePage : Page -> Model -> (Model, Cmd Msg)
+changePage p model = case p of 
+  NewChatPage -> ({model | page = p}, sendMessage (ToJson.encodeLoadUsers))
+  ChatPage -> ({model | page = p}, Cmd.none)
+  LoginPage -> ({model | page = p}, Cmd.none)
+  RegisterPage -> ({model | page = p}, Cmd.none)
+  ProfilePage -> ({model | page = p}, Cmd.none)
 
 
 subscriptions : Model -> Sub Msg

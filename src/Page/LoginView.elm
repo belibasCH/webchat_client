@@ -14,7 +14,7 @@ loginView u =
       div [class "login-content"] [
       h1 [] [text "Login"],
       input [class "login-input", type_ "text", value u.name, placeholder "Username", onInput SetUsername] [],
-      input [class "login-input", type_ "password", value u.password, placeholder "Password", onInput SetPassword] [],
+      input [class "login-input", type_ "password", placeholder "Password", onInput SetPassword] [],
       p [] [text "Error message"]
       ],
       button [class "primary-button login", onClick SubmitLogin] [text "Login"]

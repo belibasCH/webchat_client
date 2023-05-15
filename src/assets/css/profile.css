@@ -11,8 +11,11 @@
 
 }
 .profile-avatar {
-    height: 50%;
+   
+    height: 300px;
+    width: 300px;
     border-radius: 50%;
+    object-fit: cover;
 
 }
 .input-group {
@@ -21,7 +24,10 @@
     padding-bottom: var(--default-padding);
 }
 .change-profile-box {
+    width: 100%;
     display: flex;
     justify-content: space-between;
     gap: var(--default-padding);
+    align-items: center;
+    justify-content: center;
 }

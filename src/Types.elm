@@ -7,6 +7,7 @@ import Html.Attributes exposing (type_)
 type alias Model = {
   page : Page,
   user : User,
+  password : String,
   users : List UserPreview,
   activeChat : Chat,
   chats : List ChatPreview,
@@ -23,7 +24,6 @@ type Msg
     |   ChangeUserName String
     |   ChangePassword String
     |   SendNewPW
-    |   LoadChats
   
 type alias ChatInfo = {
   currentText : String,
@@ -32,7 +32,7 @@ type alias ChatInfo = {
   }
 type alias UserPreview = {
     user : User,
-    isonline : Bool
+    is_online : Bool
     }
 
 type alias ChatPreview = {
@@ -65,22 +65,20 @@ type alias Message = {
   }
 type alias User = {
   name : String,
-  id : String,
-  password: String,
-  avatar : String
-  }
-type alias UserShort = {
-  name : String,
   id : String
   }
 
 type alias LoginSucceded = {
   msgType : String,
-  user : UserShort
+  user : User
   }
 type alias ChatsLoaded = {
   msgType : String,
   chats : List ChatPreview
+  }
+type alias UsersLoaded = {
+  msgType : String,
+  users : List UserPreview
   }
 type alias DateTime = String
 
