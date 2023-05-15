@@ -17,7 +17,7 @@ exampleMessage = {
 
 errorChatPreview : ChatPreview
 errorChatPreview = {
-  user_id = "ErrorUser",
+  user = {id = "Error", name = "Error"},
   latest_message = exampleMessage,
   total_message_count = 3,
   unread_message_count = 1 
@@ -68,7 +68,7 @@ encodeLoadMessages user_id =
 returnChats : Result Error ChatsLoaded -> List ChatPreview
 returnChats r = case r of
   Ok ok -> ok.chats
-  Err e -> [{errorChatPreview | user_id = Debug.toString e}]
+  Err e -> [{errorChatPreview | user = {id = Debug.toString e, name = Debug.toString e}}]
 
 returnUsers : Result Error UsersLoaded -> List UserPreview
 returnUsers r = case r of
@@ -98,7 +98,7 @@ decodeChats = D.list decodeChatPreview
 
 decodeChatPreview : D.Decoder ChatPreview
 decodeChatPreview = D.map4 ChatPreview 
-  (D.field "user_id" D.string) 
+  (D.field "user" decodeUser) 
   (D.field "latest_message" decodeMessage) 
   (D.field "total_message_count" D.int) 
   (D.field "unread_message_count" D.int)

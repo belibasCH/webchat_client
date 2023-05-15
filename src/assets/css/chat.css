@@ -12,7 +12,6 @@
         var(--border-radius) 
         var(--border-radius)
         0 ;
-    width: 200px;
 }
 .current-chat{
     flex-grow: 2;
@@ -76,6 +75,7 @@
 .contact-preview {
     display: flex;
     gap: var(--default-padding);
+    justify-content: space-between;
     align-items: center;
     padding: var(--default-padding);
     cursor: pointer;
@@ -91,6 +91,11 @@
 }
 .contact-preview .contact-details{
     display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+.contact-preview .contact-text{
+    display: flex;
     flex-direction: column;
 }
 
@@ -105,4 +110,16 @@
  }
  .contact-preview.large {
   padding: 0;
+ }
+ .contact-preview .unread{
+     background-color: var(--primary-color);
+     border-radius: 50%;
+     height: 20px;
+     width: 20px;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+ }
+ .contact-preview .hide{
+     display: none;
  }

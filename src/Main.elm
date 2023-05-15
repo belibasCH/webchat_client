@@ -43,7 +43,8 @@ initialModel = ({
   user = initialUser,
   password = "",
   users = [exampleUserPreview, exampleUserPreview],
-  activeChat = exampleChat,
+  activeChatPartner = initialUser,
+  messages = [],
   chats = [exampleChatPreview, exampleChatPreview],
   revicedMessageFromServer = {msgType = "nothing"}},  Cmd.none)
 
@@ -68,11 +69,12 @@ exampleMessage = {
 
 exampleChat : Chat
 exampleChat = {
+  user = {name="ExName", id="ExID"},
   messages = [exampleMessage, exampleMessage, exampleMessage]
   }
 exampleChatPreview : ChatPreview
 exampleChatPreview = {
-  user_id = "DefaultUser",
+  user = {name="ExName", id="ExID"},
   latest_message = exampleMessage,
   total_message_count = 3,
   unread_message_count = 1 
@@ -92,17 +94,28 @@ update msg model =
   (_, SetPage p) -> changePage p model
   (_, ChangeUserName u) -> ({model | user = {name = u, id = model.user.id}}, Cmd.none)
   (_, ChangePassword p) -> ({model | user = {name = model.user.name, id = model.user.id}, password = p}, Cmd.none)
-  (_,  SendNewPW) -> (model, Cmd.none)
+  (_, SendNewPW) -> (model, Cmd.none)
   (_, StartChat id) -> ({model | page = ChatPage}, sendMessage (ToJson.encodeStartChat id))
-  (_, LoadMessages chatPreview) -> ({model | page = ChatPage, activeChat = {messages = [exampleMessage]}}, sendMessage (ToJson.encodeLoadMessages chatPreview.user_id))
+  (_, LoadMessages chatPreview) -> ({model | 
+    page = ChatPage, 
+    activeChatPartner = chatPreview.user  }, 
+    sendMessage (ToJson.encodeLoadMessages chatPreview.user.id))
 
 
 manageAnswers : Answertype -> String -> Model -> (Model, Cmd Msg)
 manageAnswers t data model = case t.msgType of 
    "login_succeeded" -> ({model | page = ChatPage, revicedMessageFromServer = {msgType = "login_succeeded"}}, sendMessage (ToJson.encodeLoadChats))
-   "chats_loaded" -> ({model | chats = returnChats (D.decodeString decodeChatsLoaded data), revicedMessageFromServer = {msgType = "chats_loaded"}}, Cmd.none)
+   "chats_loaded" -> ({model | 
+    chats = returnChats (D.decodeString decodeChatsLoaded data), 
+    revicedMessageFromServer = {msgType = "chats_loaded"}
+    }, Cmd.none)
    "users_loaded" -> ({model | page = NewChatPage, users = returnUsers (D.decodeString decodeUsersLoaded data), revicedMessageFromServer = {msgType = "users_loaded"}}, Cmd.none)
-   "chat_loaded" -> ({model | page = ChatPage, activeChat = {messages = returnLoadMessages (D.decodeString decodeMessageLoaded data)}, revicedMessageFromServer = {msgType = "chat_loaded"}}, Cmd.none)
+   "chat_loaded" -> ({model | 
+    page = ChatPage, 
+    
+    messages = returnLoadMessages (D.decodeString decodeMessageLoaded data), 
+    revicedMessageFromServer = {msgType = "chat_loaded"}}, 
+    Cmd.none)
    _ -> (model, Cmd.none)
 
 changePage : Page -> Model -> (Model, Cmd Msg)
@@ -122,7 +135,7 @@ view : Model -> Html Msg
 view m = case m.page of
   LoginPage -> withLoginContainer m (Login.loginView m.user)
   RegisterPage -> withLoginContainer m (Register.registerView)
-  ChatPage -> withContainer m (Chat.chatView m.activeChat m.chats)
+  ChatPage -> withContainer m (Chat.chatView m.activeChatPartner m.messages m.chats)
   NewChatPage -> withContainer m (NewChat.newChatView m.users)
   ProfilePage -> withContainer m (Profile.profileView m.user)
 

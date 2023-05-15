@@ -9,7 +9,8 @@ type alias Model = {
   user : User,
   password : String,
   users : List UserPreview,
-  activeChat : Chat,
+  activeChatPartner : User,
+  messages : List Message,
   chats : List ChatPreview,
   revicedMessageFromServer : Answertype
   }
@@ -38,7 +39,7 @@ type alias UserPreview = {
     }
 
 type alias ChatPreview = {
-    user_id : String,
+    user : User,
     latest_message : Message,
     total_message_count : Int,
     unread_message_count : Int
@@ -53,6 +54,7 @@ type Page
     | ProfilePage
 
 type alias Chat = { 
+  user : User,
   messages : List Message
   }
 type alias Message = {

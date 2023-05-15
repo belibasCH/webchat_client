@@ -11,16 +11,16 @@ import Html.Events exposing (targetValue)
 import Maybe exposing (withDefault)
 import Types exposing (..)
 
-chatView : Chat -> List ChatPreview -> Html Msg
-chatView activeChat chatList = 
+chatView : User -> List Message -> List ChatPreview -> Html Msg
+chatView partner messages chatList = 
   div [class "chat-container"] [
     div [class "chat-list"]
-      (List.map (\x -> contactPerson x activeChat) chatList)
+      (List.map (\x -> contactPerson x (Chat partner messages)) chatList)
     ,
     div [ class "current-chat"][
-      currentChatPartnerView activeChat,
+      currentChatPartnerView partner,
       --Map over Messages an put it in a div
-      div [class "chat"] (List.map messageView activeChat.messages),
+      div [class "chat"] (List.map messageView (List.reverse(messages))),
       inputField
     ]
   ]
@@ -38,15 +38,15 @@ contactList chats activeChat =
 
 
 contactPerson :  ChatPreview -> Chat ->  Html Msg
-contactPerson chatPreview activeChat = a [ class "contact-preview", onClick (LoadMessages chatPreview)] [
-  --if chatPreview.user_id == activeChat.chatPartner.user.id then class "contact-preview active" else class "contact-preview", onClick (LoadMessages chatPreview)
-  
+contactPerson chatPreview activeChat = a [ if chatPreview.user.id == activeChat.user.id then class "contact-preview active" else class "contact-preview", onClick (LoadMessages chatPreview)] [
+          div [class "contact-details"][
           img [src "https://www.w3schools.com/howto/img_avatar.png", class "avatar"] [],
-          div [class "contact-details"] [
-           h2 [] [text chatPreview.user_id],
-           p [] [ text chatPreview.latest_message.text],
-           p [] [ text ((String.fromInt (chatPreview.unread_message_count)) ++ " unread messages")]
-           ]]
+          div [class "contact-text"] [
+           h2 [] [text chatPreview.user.name],
+           p [] [ text chatPreview.latest_message.text] ]
+          ],
+            div [classList [("unread", True), ("show", chatPreview.unread_message_count > 0),  ("hide", chatPreview.unread_message_count == 0)] ] [ p [][text ((String.fromInt (chatPreview.unread_message_count)))]]
+         ]
            
 
 
@@ -59,8 +59,8 @@ inputField = div [class "chat-input"] [
 
 
 
-currentChatPartnerView : Chat -> Html Msg
-currentChatPartnerView chat = a [class "contact-preview large", href "https://www.w3schools.com/howto/img_avatar.png"] [
+currentChatPartnerView : User -> Html Msg
+currentChatPartnerView user = a [class "contact-preview large", href "https://www.w3schools.com/howto/img_avatar.png"] [
           img [src "https://www.w3schools.com/howto/img_avatar.png", class "avatar"] [],
           div [class "contact-details"] [
     
