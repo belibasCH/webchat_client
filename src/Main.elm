@@ -44,7 +44,7 @@ initialModel = ({
   users = [exampleUserPreview, exampleUserPreview],
   activeChat = exampleChat,
   chats = [exampleChatPreview, exampleChatPreview],
-  revicedMessageFromServer = exampleRecivedMessageFromServer},  Cmd.none)
+  revicedMessageFromServer = {msgType = "nothing"}},  Cmd.none)
 
 initialUser : User
 initialUser = {name = "Name Person1", id = "314258b5-a16f-46fe-93e5-82ca0e26e302", password ="",avatar = "https://www.w3schools.com/howto/img_avatar.png"}
@@ -72,7 +72,14 @@ exampleChat = {
   }
 exampleChatPreview : ChatPreview
 exampleChatPreview = {
-  userId = "314258b5-a16f-46fe-93e5-82ca0e26e301",
+  userId = "DefaultUser",
+  latestMessage = exampleMessage,
+  totalMessageCount = 3,
+  unreadMessageCount = 1 
+  }
+errorChatPreview : ChatPreview
+errorChatPreview = {
+  userId = "ErrorUser",
   latestMessage = exampleMessage,
   totalMessageCount = 3,
   unreadMessageCount = 1 
@@ -89,14 +96,42 @@ update msg model =
   (_, ValidatePassword p)-> ({model | user = {name = model.user.name, id = model.user.id, password = p, avatar = model.user.avatar}}, Cmd.none)
   (_, SubmitRegistration) -> (model, sendMessage (ToJson.encodeRegisterUser model.user))
   (_, SubmitLogin) -> ( {model | page = ChatPage} , sendMessage (ToJson.encodeLogin model.user))
-  (_, Recv s) -> ({model | revicedMessageFromServer = returnSave (D.decodeString decodeType s)}, Cmd.none)
+  (_, Recv s) -> (manageAnswers (returnTypeSave (D.decodeString decodeType s)) s model, Cmd.none)
   (_, SetPage p) -> ({model | page = p}, Cmd.none)
   (_, ChangeUserName u) -> ({model | user = {name = u, id = model.user.id, password = model.user.password, avatar = model.user.avatar}}, Cmd.none)
   (_, ChangePassword p) -> ({model | user = {name = model.user.name, id = model.user.id, password = p, avatar = model.user.avatar}}, Cmd.none)
   (_,  SendNewPW) -> (model, Cmd.none)
   (_, LoadChats) -> (model, sendMessage (ToJson.encodeLoadChats))
-decodeType : D.Decoder LoginSucceded
-decodeType = D.map2 LoginSucceded (D.field "type" D.string) (D.field "user" decodeUser)
+--returnSave (D.decodeString decodeType s)
+
+manageAnswers : Answertype -> String -> Model -> Model
+manageAnswers t data model = case t.msgType of 
+   "login_succeeded" -> {model | page = ProfilePage}
+   "chats_loaded" -> {model | chats = returnChats (D.decodeString decodeChats data)}
+   _ -> model
+
+returnChats : Result Error (List ChatPreview) -> List ChatPreview
+returnChats r = case r of
+  Ok ok -> ok
+  Err e -> [errorChatPreview]
+decodeChats : D.Decoder (List ChatPreview)
+decodeChats = D.list decodeChatPreview
+
+decodeChatPreview : D.Decoder ChatPreview
+decodeChatPreview = D.map4 ChatPreview (D.field "user_id" D.string) (D.field "latest_message" decodeMessage) (D.field "total_message_count" D.int) (D.field "unread_message_count" D.int)
+
+decodeMessage : D.Decoder Message
+decodeMessage = D.map7 Message (D.field "id" D.string) (D.field "sender_id" D.string) (D.field "reciver_id" D.string) (D.field "text" D.string) (D.field "sent_at" D.string) (D.field "recived_at" D.string) (D.field "read_at" D.string)
+decodeType : D.Decoder Answertype
+decodeType = D.map Answertype (D.field "type" D.string)
+returnTypeSave : Result Error Answertype -> Answertype
+returnTypeSave r = case r of
+  Ok ok -> ok
+  Err e -> Answertype "Error"
+  
+
+decodeLoginSucceded : D.Decoder LoginSucceded
+decodeLoginSucceded = D.map2 LoginSucceded (D.field "type" D.string) (D.field "user" decodeUser)
     
 decodeUser : D.Decoder UserShort
 decodeUser = D.map2 UserShort (D.field "id" D.string) (D.field "name" D.string) 
@@ -161,7 +196,7 @@ withContainer model content =
   navigation model.page,
   content,
   secureSign,
-  text model.revicedMessageFromServer.user.name
+  text model.revicedMessageFromServer.msgType
  ]
 
 navigation : Page -> Html Msg

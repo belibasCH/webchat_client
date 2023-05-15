@@ -10,7 +10,7 @@ type alias Model = {
   users : List UserPreview,
   activeChat : Chat,
   chats : List ChatPreview,
-  revicedMessageFromServer : LoginSucceded
+  revicedMessageFromServer : Answertype
   }
 type Msg
   =   SubmitRegistration
@@ -79,4 +79,8 @@ type alias LoginSucceded = {
   user : UserShort
   }
 type alias DateTime = String
+
+type alias Answertype = {
+  msgType : String
+  }
 
