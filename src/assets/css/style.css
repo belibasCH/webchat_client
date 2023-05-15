@@ -51,7 +51,7 @@ p {
     border-radius: var(--border-radius);
     width: 80%;
     max-width: 1000px;
-    min-height: 600px;
+    height: 700px;
     display: flex;
     position: relative;
     
@@ -107,3 +107,19 @@ nav ul li.active{
     align-items: center;
 }
 
+.server-message {
+    position: fixed; 
+    bottom: 2em; 
+    left: 2em; 
+    height: 36px; 
+    padding: 0 1em;
+    background-color: rgb(100, 173, 15); 
+    color: white; 
+    font-family: monospace; 
+    pointer-events: auto; 
+    z-index: 2147483647; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    cursor: pointer;
+}

@@ -50,6 +50,20 @@ encodeLoadUsers =
     [ ("type", E.string "load_users")
     ]
 
+encodeStartChat : String -> E.Value
+encodeStartChat receiver_id =
+  E.object
+    [ ("type", E.string "send")
+    , ("receiver_id", E.string receiver_id)
+    , ("text", E.string "Chat started")
+    
+    ]
+encodeLoadMessages : String -> E.Value
+encodeLoadMessages user_id =
+  E.object
+    [ ("type", E.string "load_chat")
+    , ("user_id", E.string user_id)
+    ]
     
 returnChats : Result Error ChatsLoaded -> List ChatPreview
 returnChats r = case r of
@@ -59,7 +73,7 @@ returnChats r = case r of
 returnUsers : Result Error UsersLoaded -> List UserPreview
 returnUsers r = case r of
   Ok ok -> ok.users
-  Err e -> []
+  Err e -> [{user = {id = Debug.toString e, name = Debug.toString e}, is_online = False}]
 
 decodeChatsLoaded : D.Decoder ChatsLoaded
 decodeChatsLoaded = D.map2 ChatsLoaded 
@@ -112,16 +126,23 @@ decodeLoginSucceded : D.Decoder LoginSucceded
 decodeLoginSucceded = D.map2 LoginSucceded (D.field "type" D.string) (D.field "user" decodeUser)
     
 decodeUser : D.Decoder User
-decodeUser = D.map2 User (D.field "id" D.string) (D.field "name" D.string) 
+decodeUser = D.map2 User (D.field "name" D.string)  (D.field "id" D.string) 
 
 returnSave : Result Error LoginSucceded -> LoginSucceded
 returnSave s = case s of
   Ok ok -> ok
   Err e -> LoginSucceded "Error" {id = "Error", name = "Error"}
 
--- {
---     "type": "login_succeeded",
-    
---     // The authenticated user.
---     "user": User
--- }
+returnLoadMessages : Result Error ChatLoaded -> List Message
+returnLoadMessages s = case s of
+  Ok ok -> ok.messages
+  Err e -> []
+
+decodeMessageLoaded : D.Decoder ChatLoaded
+decodeMessageLoaded = D.map2 ChatLoaded 
+  (D.field "type" D.string) 
+  (D.field "messages" decodeMessages)
+
+decodeMessages : D.Decoder (List Message)
+decodeMessages = D.list decodeMessage
+

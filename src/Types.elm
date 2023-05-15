@@ -24,6 +24,8 @@ type Msg
     |   ChangeUserName String
     |   ChangePassword String
     |   SendNewPW
+    |   StartChat String
+    |   LoadMessages ChatPreview
   
 type alias ChatInfo = {
   currentText : String,
@@ -51,7 +53,6 @@ type Page
     | ProfilePage
 
 type alias Chat = { 
-  chatPartner : UserPreview, 
   messages : List Message
   }
 type alias Message = {
@@ -75,6 +76,10 @@ type alias LoginSucceded = {
 type alias ChatsLoaded = {
   msgType : String,
   chats : List ChatPreview
+  }
+type alias ChatLoaded = {
+  msgType : String,
+  messages : List Message
   }
 type alias UsersLoaded = {
   msgType : String,

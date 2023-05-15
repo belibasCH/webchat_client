@@ -14,17 +14,21 @@ import Types exposing (..)
 chatView : Chat -> List ChatPreview -> Html Msg
 chatView activeChat chatList = 
   div [class "chat-container"] [
-    div [class "chat-list"][
-      contactList chatList activeChat
-    ],
+    div [class "chat-list"]
+      (List.map (\x -> contactPerson x activeChat) chatList)
+    ,
     div [ class "current-chat"][
       currentChatPartnerView activeChat,
-      --Map over ChatPrevies an put it in a div
-      List.map chatPreviews (List.reverse (chatList)) |> div [class "chat"],
-
-    inputField
+      --Map over Messages an put it in a div
+      div [class "chat"] (List.map messageView activeChat.messages),
+      inputField
     ]
   ]
+
+messageView : Message -> Html Msg
+messageView mes = div [class "chat-item"] [
+           p [] [text mes.text]
+           ]
 
 contactList : List ChatPreview -> Chat -> Html Msg
 contactList chats activeChat = 
@@ -34,7 +38,9 @@ contactList chats activeChat =
 
 
 contactPerson :  ChatPreview -> Chat ->  Html Msg
-contactPerson chatPreview activeChat = a [if chatPreview.user_id == activeChat.chatPartner.user.id then class "contact-preview active" else class "contact-preview" ] [
+contactPerson chatPreview activeChat = a [ class "contact-preview", onClick (LoadMessages chatPreview)] [
+  --if chatPreview.user_id == activeChat.chatPartner.user.id then class "contact-preview active" else class "contact-preview", onClick (LoadMessages chatPreview)
+  
           img [src "https://www.w3schools.com/howto/img_avatar.png", class "avatar"] [],
           div [class "contact-details"] [
            h2 [] [text chatPreview.user_id],
@@ -43,10 +49,7 @@ contactPerson chatPreview activeChat = a [if chatPreview.user_id == activeChat.c
            ]]
            
 
-chatPreviews : ChatPreview -> Html Msg
-chatPreviews mes = div [class "chat-item"] [
-           p [] [text mes.latest_message.text]
-           ]
+
 
 inputField : Html Msg
 inputField = div [class "chat-input"] [
@@ -60,7 +63,7 @@ currentChatPartnerView : Chat -> Html Msg
 currentChatPartnerView chat = a [class "contact-preview large", href "https://www.w3schools.com/howto/img_avatar.png"] [
           img [src "https://www.w3schools.com/howto/img_avatar.png", class "avatar"] [],
           div [class "contact-details"] [
-           h1 [] [text chat.chatPartner.user.id],
+    
            p [] [text "online"]
            ]
            ]

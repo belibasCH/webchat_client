@@ -68,8 +68,7 @@ exampleMessage = {
 
 exampleChat : Chat
 exampleChat = {
-  messages = [exampleMessage, exampleMessage, exampleMessage],
-  chatPartner = exampleUserPreview
+  messages = [exampleMessage, exampleMessage, exampleMessage]
   }
 exampleChatPreview : ChatPreview
 exampleChatPreview = {
@@ -78,8 +77,6 @@ exampleChatPreview = {
   total_message_count = 3,
   unread_message_count = 1 
   }
-
---page  = LoginPage {username = "", password = ""
   
 
 
@@ -96,18 +93,22 @@ update msg model =
   (_, ChangeUserName u) -> ({model | user = {name = u, id = model.user.id}}, Cmd.none)
   (_, ChangePassword p) -> ({model | user = {name = model.user.name, id = model.user.id}, password = p}, Cmd.none)
   (_,  SendNewPW) -> (model, Cmd.none)
+  (_, StartChat id) -> ({model | page = ChatPage}, sendMessage (ToJson.encodeStartChat id))
+  (_, LoadMessages chatPreview) -> ({model | page = ChatPage, activeChat = {messages = [exampleMessage]}}, sendMessage (ToJson.encodeLoadMessages chatPreview.user_id))
+
 
 manageAnswers : Answertype -> String -> Model -> (Model, Cmd Msg)
 manageAnswers t data model = case t.msgType of 
-   "login_succeeded" -> ({model | page = ProfilePage, revicedMessageFromServer = {msgType = "login_succeeded"}}, sendMessage (ToJson.encodeLoadChats))
+   "login_succeeded" -> ({model | page = ChatPage, revicedMessageFromServer = {msgType = "login_succeeded"}}, sendMessage (ToJson.encodeLoadChats))
    "chats_loaded" -> ({model | chats = returnChats (D.decodeString decodeChatsLoaded data), revicedMessageFromServer = {msgType = "chats_loaded"}}, Cmd.none)
    "users_loaded" -> ({model | page = NewChatPage, users = returnUsers (D.decodeString decodeUsersLoaded data), revicedMessageFromServer = {msgType = "users_loaded"}}, Cmd.none)
+   "chat_loaded" -> ({model | page = ChatPage, activeChat = {messages = returnLoadMessages (D.decodeString decodeMessageLoaded data)}, revicedMessageFromServer = {msgType = "chat_loaded"}}, Cmd.none)
    _ -> (model, Cmd.none)
 
 changePage : Page -> Model -> (Model, Cmd Msg)
 changePage p model = case p of 
   NewChatPage -> ({model | page = p}, sendMessage (ToJson.encodeLoadUsers))
-  ChatPage -> ({model | page = p}, Cmd.none)
+  ChatPage -> ({model | page = p}, sendMessage (ToJson.encodeLoadChats))
   LoginPage -> ({model | page = p}, Cmd.none)
   RegisterPage -> ({model | page = p}, Cmd.none)
   ProfilePage -> ({model | page = p}, Cmd.none)
@@ -151,7 +152,8 @@ withLoginContainer model content =
          ],
     content
     ],
-    div [id "bubble1"] []
+    div [id "bubble1"] [],
+    div [ class "server-message "] [text model.revicedMessageFromServer.msgType]
   ]
 
 withContainer : Model -> Html Msg  -> Html Msg
@@ -160,7 +162,7 @@ withContainer model content =
   navigation model.page,
   content,
   secureSign,
-  text model.revicedMessageFromServer.msgType
+  div [ class "server-message "] [text model.revicedMessageFromServer.msgType]
  ]
 
 navigation : Page -> Html Msg

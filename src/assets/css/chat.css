@@ -6,7 +6,7 @@
 .chat-list{
     display: flex;
     flex-direction: column;
-    
+    overflow-y: scroll;
     border-radius: 
         0
         var(--border-radius) 
@@ -78,6 +78,7 @@
     gap: var(--default-padding);
     align-items: center;
     padding: var(--default-padding);
+    cursor: pointer;
 }
 .contact-preview .avatar {
     height: 30px;
