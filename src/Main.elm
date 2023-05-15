@@ -23,6 +23,7 @@ import Json.Encode as E
 import Json.Decode as D
 import Services.JsonEncoder as ToJson exposing (..)
 import Html.Attributes exposing (classList)
+import Json.Decode exposing (Error)
 
 main : Program () Model Msg
 main =
@@ -43,7 +44,7 @@ initialModel = ({
   users = [exampleUserPreview, exampleUserPreview],
   activeChat = exampleChat,
   chats = [exampleChatPreview, exampleChatPreview],
-  revicedMessageFromServer = "Response" },  Cmd.none)
+  revicedMessageFromServer = exampleRecivedMessageFromServer},  Cmd.none)
 
 initialUser : User
 initialUser = {name = "Name Person1", id = "314258b5-a16f-46fe-93e5-82ca0e26e302", password ="",avatar = "https://www.w3schools.com/howto/img_avatar.png"}
@@ -51,6 +52,8 @@ initialUser = {name = "Name Person1", id = "314258b5-a16f-46fe-93e5-82ca0e26e302
 exampleUserPreview : UserPreview
 exampleUserPreview = {user = initialUser, isonline = True}
 
+exampleRecivedMessageFromServer : LoginSucceded
+exampleRecivedMessageFromServer = { msgType = "", user = {id = "exID", name = "ExName"}}
 exampleMessage : Message
 exampleMessage = {
   id = "12345", 
@@ -86,19 +89,22 @@ update msg model =
   (_, ValidatePassword p)-> ({model | user = {name = model.user.name, id = model.user.id, password = p, avatar = model.user.avatar}}, Cmd.none)
   (_, SubmitRegistration) -> (model, sendMessage (ToJson.encodeRegisterUser model.user))
   (_, SubmitLogin) -> ( {model | page = ChatPage} , sendMessage (ToJson.encodeLogin model.user))
-  (_, Recv s) -> ({model | revicedMessageFromServer = s}, Cmd.none)
+  (_, Recv s) -> ({model | revicedMessageFromServer = returnSave (D.decodeString decodeType s)}, Cmd.none)
   (_, SetPage p) -> ({model | page = p}, Cmd.none)
   (_, ChangeUserName u) -> ({model | user = {name = u, id = model.user.id, password = model.user.password, avatar = model.user.avatar}}, Cmd.none)
   (_, ChangePassword p) -> ({model | user = {name = model.user.name, id = model.user.id, password = p, avatar = model.user.avatar}}, Cmd.none)
   (_,  SendNewPW) -> (model, Cmd.none)
   (_, LoadChats) -> (model, sendMessage (ToJson.encodeLoadChats))
+decodeType : D.Decoder LoginSucceded
+decodeType = D.map2 LoginSucceded (D.field "type" D.string) (D.field "user" decodeUser)
+    
+decodeUser : D.Decoder UserShort
+decodeUser = D.map2 UserShort (D.field "id" D.string) (D.field "name" D.string) 
 
-
--- parseUser : D.Decoder User
--- parseUser = D.map2 User
---   (D.field "name" D.string)
---   (D.field "id" D.string)
-
+returnSave : Result Error LoginSucceded -> LoginSucceded
+returnSave s = case s of
+  Ok ok -> ok
+  Err e -> LoginSucceded "Error" {id = "Error", name = "Error"}
 
 -- {
 --     "type": "login_succeeded",
@@ -155,7 +161,7 @@ withContainer model content =
   navigation model.page,
   content,
   secureSign,
-  text model.revicedMessageFromServer
+  text model.revicedMessageFromServer.user.name
  ]
 
 navigation : Page -> Html Msg

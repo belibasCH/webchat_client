@@ -1,5 +1,8 @@
 module Types exposing (..)
 import Html exposing (text)
+import Json.Decode as D
+import Json.Encode as E
+import Html.Attributes exposing (type_)
 
 type alias Model = {
   page : Page,
@@ -7,8 +10,7 @@ type alias Model = {
   users : List UserPreview,
   activeChat : Chat,
   chats : List ChatPreview,
-  revicedMessageFromServer : String
-
+  revicedMessageFromServer : LoginSucceded
   }
 type Msg
   =   SubmitRegistration
@@ -66,6 +68,15 @@ type alias User = {
   id : String,
   password: String,
   avatar : String
+  }
+type alias UserShort = {
+  name : String,
+  id : String
+  }
+
+type alias LoginSucceded = {
+  msgType : String,
+  user : UserShort
   }
 type alias DateTime = String
 
