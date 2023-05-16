@@ -102,7 +102,7 @@ update msg model =
   (_, StartChat id) -> ({model | page = ChatPage}, sendMessage (ToJson.encodeStartChat id))
   (_, LoadMessages chatPreview) -> ({model | 
     page = ChatPage, 
-    activeChatPartner = chatPreview.user  }, 
+    activeChatPartner = chatPreview.user }, 
     sendMessage (ToJson.encodeLoadMessages chatPreview.user.id))
   (_, SendChatMessage) -> ({model | page = ChatPage, currentText=""}, sendMessage (ToJson.encodeSendMessage model.activeChatPartner.id model.currentText))
   (_, ChatInput i) -> ({model | currentText=i}, Cmd.none)
@@ -110,23 +110,36 @@ update msg model =
 
 manageAnswers : Answertype -> String -> Model -> (Model, Cmd Msg)
 manageAnswers t data model = case t.msgType of 
-  "login_succeeded" -> ({model | page = ChatPage, errorMessage= "", user = returnUser (D.decodeString decodeLoginSucceded data), revicedMessageFromServer = {msgType = "login_succeeded"}}, sendMessage (ToJson.encodeLoadChats))
+  "login_succeeded" -> ({model | page = ChatPage, errorMessage= "", user = returnUser (D.decodeString decodeLoginSucceded data), revicedMessageFromServer = {msgType = "login_succeeded"}}, 
+    Cmd.batch[
+    sendMessage (ToJson.encodeLoadChats),
+    sendMessage (ToJson.encodeLoadUsers)])
   "chats_loaded" -> ({model | 
       chats = returnChats (D.decodeString decodeChatsLoaded data), 
       revicedMessageFromServer = {msgType = "chats_loaded"}
     }, Cmd.none)
-  "users_loaded" -> ({model | page = NewChatPage, users = returnUsers (D.decodeString decodeUsersLoaded data), revicedMessageFromServer = {msgType = "users_loaded"}}, Cmd.none)
+  "users_loaded" -> ({model | users = returnUsers (D.decodeString decodeUsersLoaded data), revicedMessageFromServer = {msgType = "users_loaded"}}, Cmd.none)
   "chat_loaded" -> ({model | 
       page = ChatPage, 
       messages = returnLoadMessages (D.decodeString decodeMessageLoaded data), 
       revicedMessageFromServer = {msgType = "chat_loaded"}}, 
       Cmd.none)
   "error" -> ({model | password = "", errorMessage = returnError (D.decodeString decodeError data)}, Cmd.none)
+  "receive_message" -> ({model | 
+      revicedMessageFromServer = {msgType = "receive_message"}}, 
+      --produces an error
+      sendMessage (ToJson.encodeRecievedMessage (returnReceiveMessage (D.decodeString decodeReceiveMessage data))))
+      --Cmd.none)
+  "user_created" -> ({model | users = returnUserCreated (D.decodeString decodeUserCreated data) :: model.users }, Cmd.none)
+  "user_logged_in" -> ({model |users = 
+    List.map (\ a -> if a.user.id == (returnUserLoggedIn (D.decodeString decodeUserLoggedIn data)) then {a | is_online = True} else a) model.users, revicedMessageFromServer = {msgType = "user_logged_in"}}, Cmd.none)
+  "user_logged_out" -> ({model |users = 
+    List.map (\ a -> if a.user.id == (returnUserLoggedOut (D.decodeString decodeUserLoggedOut data)) then {a | is_online = False} else a) model.users, revicedMessageFromServer = {msgType = "user_logged_out"}}, Cmd.none)
   _ -> (model, Cmd.none)
 
 changePage : Page -> Model -> (Model, Cmd Msg)
 changePage p model = case p of 
-  NewChatPage -> ({model | page = p}, sendMessage (ToJson.encodeLoadUsers))
+  NewChatPage -> ({model | page = p},Cmd.none)
   ChatPage -> ({model | page = p}, sendMessage (ToJson.encodeLoadChats))
   LoginPage -> ({model | page = p}, Cmd.none)
   RegisterPage -> ({model | page = p}, Cmd.none)

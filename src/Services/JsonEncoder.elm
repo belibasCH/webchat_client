@@ -65,6 +65,19 @@ encodeLoadMessages user_id =
     , ("user_id", E.string user_id)
     ]
 
+encodeReadMessage : String -> E.Value
+encodeReadMessage message_id =
+  E.object
+    [ ("type", E.string "read")
+    , ("message_id", E.string message_id)
+    ]
+encodeRecievedMessage : String -> E.Value
+encodeRecievedMessage message_id =
+  E.object
+    [ ("type", E.string "receive")
+    , ("message_id", E.string message_id)
+    ]
+
 encodeSendMessage : String -> String -> E.Value
 encodeSendMessage receiver_id text =
   E.object
@@ -92,10 +105,42 @@ returnError : Result Error ErrorMessage -> String
 returnError r = case r of
   Ok ok -> ok.error
   Err e -> Debug.toString e
-  
+
+returnReceiveMessage : Result Error ReceiveMessage -> String
+returnReceiveMessage r = case r of
+  Ok ok -> ok.message.id
+  Err e -> "Error decoding message" 
+
+returnUserCreated : Result Error UserCreated -> UserPreview
+returnUserCreated r = case r of
+  Ok ok -> {user = ok.user, is_online = False}
+  Err e -> {user = {id = Debug.toString e, name = Debug.toString e}, is_online = False}
+
+returnUserLoggedIn : Result Error UserLoggedIn -> String
+returnUserLoggedIn r = case r of
+  Ok ok -> ok.id
+  Err e -> Debug.toString e
+
+returnUserLoggedOut : Result Error UserLoggedOut -> String
+returnUserLoggedOut r = case r of
+  Ok ok -> ok.id
+  Err e -> Debug.toString e
+
+
 decodeError : D.Decoder ErrorMessage
 decodeError = D.map2 ErrorMessage (D.field "type" D.string) (D.field "error" D.string)
 
+decodeReceiveMessage : D.Decoder ReceiveMessage
+decodeReceiveMessage = D.map2 ReceiveMessage (D.field "type" D.string) (D.field "message" decodeMessage)
+
+decodeUserCreated : D.Decoder UserCreated
+decodeUserCreated = D.map2 UserCreated (D.field "type" D.string) (D.field "user" decodeUser)
+
+decodeUserLoggedIn : D.Decoder UserLoggedIn
+decodeUserLoggedIn = D.map2 UserLoggedIn (D.field "type" D.string) (D.field "user_id" D.string)
+
+decodeUserLoggedOut : D.Decoder UserLoggedOut
+decodeUserLoggedOut = D.map2 UserLoggedOut (D.field "type" D.string) (D.field "user_id" D.string)
 
 decodeChatsLoaded : D.Decoder ChatsLoaded
 decodeChatsLoaded = D.map2 ChatsLoaded 

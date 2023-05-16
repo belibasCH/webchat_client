@@ -3,6 +3,7 @@ import Html exposing (text)
 import Json.Decode as D
 import Json.Encode as E
 import Html.Attributes exposing (type_)
+import Html.Attributes exposing (id)
 
 type alias Model = {
   page : Page,
@@ -99,4 +100,25 @@ type alias Answertype = {
 type alias ErrorMessage = {
   msgType : String,
   error : String
+  }
+type alias ReadMessage ={
+  msgType : String,
+  id : String
+  }
+
+type alias ReceiveMessage = {
+  msgType : String,
+  message : Message
+  }
+type alias UserCreated = {
+  msgType : String,
+  user : User
+  }
+type alias UserLoggedIn = {
+  msgType : String,
+  id : String
+  }
+type alias UserLoggedOut = {
+  msgType : String,
+  id : String
   }
