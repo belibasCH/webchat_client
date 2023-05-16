@@ -54,16 +54,16 @@ contactPerson chatPreview activeChat = a [ if chatPreview.user.id == activeChat.
 inputField : Html Msg
 inputField = div [class "chat-input"] [
        textarea [ id "message", placeholder "Nachricht", onInput ChatInput] []
-    , button [class "primary-button"] [ div [class "send-icon", onClick SendChatMessage ] [] ]
+    , button [class "primary-button send"] [ div [class "send-icon", onClick SendChatMessage ] [] ]
     ]
 
 
 
 currentChatPartnerView : User -> Html Msg
-currentChatPartnerView user = a [class "contact-preview large", href "https://www.w3schools.com/howto/img_avatar.png"] [
+currentChatPartnerView user = div [class "current-chatpartner-profile"] [
           img [src "https://www.w3schools.com/howto/img_avatar.png", class "avatar"] [],
-          div [class "contact-details"] [
-    
-           p [] [text "online"]
+          div [class "contact-text"] [
+            h2 [] [text user.name],
+           p [] [text ""]
            ]
            ]
