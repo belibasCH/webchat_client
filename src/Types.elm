@@ -12,6 +12,7 @@ type alias Model = {
   activeChatPartner : User,
   messages : List Message,
   currentText : String,
+  errorMessage : String,
   chats : List ChatPreview,
   revicedMessageFromServer : Answertype
   }
@@ -95,4 +96,7 @@ type alias DateTime = String
 type alias Answertype = {
   msgType : String
   }
-
+type alias ErrorMessage = {
+  msgType : String,
+  error : String
+  }

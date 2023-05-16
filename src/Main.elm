@@ -48,6 +48,7 @@ initialModel = ({
   activeChatPartner = initialUser,
   messages = [],
   currentText = "",
+  errorMessage = "",
   chats = [exampleChatPreview, exampleChatPreview],
   revicedMessageFromServer = {msgType = "nothing"}},  Cmd.none)
 
@@ -92,7 +93,7 @@ update msg model =
   (_, SetPassword p) -> ({model | user = {name = model.user.name, id = model.user.id}, password = p}, Cmd.none)
   (_, ValidatePassword p)-> ({model | user = {name = model.user.name, id = model.user.id}}, Cmd.none)
   (_, SubmitRegistration) -> (model, sendMessage (ToJson.encodeRegisterUser model.user model.password))
-  (_, SubmitLogin) -> ( {model | page = ChatPage} , sendMessage (ToJson.encodeLogin model.user model.password))
+  (_, SubmitLogin) -> ( model , sendMessage (ToJson.encodeLogin model.user model.password))
   (_, Recv s) -> manageAnswers (returnTypeSave (D.decodeString decodeType s)) s model
   (_, SetPage p) -> changePage p model
   (_, ChangeUserName u) -> ({model | user = {name = u, id = model.user.id}}, Cmd.none)
@@ -109,20 +110,19 @@ update msg model =
 
 manageAnswers : Answertype -> String -> Model -> (Model, Cmd Msg)
 manageAnswers t data model = case t.msgType of 
-   "login_succeeded" -> ({model | page = ChatPage, user = returnUser (D.decodeString decodeLoginSucceded data), revicedMessageFromServer = {msgType = "login_succeeded"}}, sendMessage (ToJson.encodeLoadChats))
-   "chats_loaded" -> ({model | 
-    chats = returnChats (D.decodeString decodeChatsLoaded data), 
-    revicedMessageFromServer = {msgType = "chats_loaded"}
+  "login_succeeded" -> ({model | page = ChatPage, errorMessage= "", user = returnUser (D.decodeString decodeLoginSucceded data), revicedMessageFromServer = {msgType = "login_succeeded"}}, sendMessage (ToJson.encodeLoadChats))
+  "chats_loaded" -> ({model | 
+      chats = returnChats (D.decodeString decodeChatsLoaded data), 
+      revicedMessageFromServer = {msgType = "chats_loaded"}
     }, Cmd.none)
-   "users_loaded" -> ({model | page = NewChatPage, users = returnUsers (D.decodeString decodeUsersLoaded data), revicedMessageFromServer = {msgType = "users_loaded"}}, Cmd.none)
-   "chat_loaded" -> ({model | 
-    page = ChatPage, 
-    
-    messages = returnLoadMessages (D.decodeString decodeMessageLoaded data), 
-    revicedMessageFromServer = {msgType = "chat_loaded"}}, 
-    Cmd.none)
-
-   _ -> (model, Cmd.none)
+  "users_loaded" -> ({model | page = NewChatPage, users = returnUsers (D.decodeString decodeUsersLoaded data), revicedMessageFromServer = {msgType = "users_loaded"}}, Cmd.none)
+  "chat_loaded" -> ({model | 
+      page = ChatPage, 
+      messages = returnLoadMessages (D.decodeString decodeMessageLoaded data), 
+      revicedMessageFromServer = {msgType = "chat_loaded"}}, 
+      Cmd.none)
+  "error" -> ({model | password = "", errorMessage = returnError (D.decodeString decodeError data)}, Cmd.none)
+  _ -> (model, Cmd.none)
 
 changePage : Page -> Model -> (Model, Cmd Msg)
 changePage p model = case p of 
@@ -139,8 +139,8 @@ subscriptions _ =
 
 view : Model -> Html Msg
 view m = case m.page of
-  LoginPage -> withLoginContainer m (Login.loginView m.user)
-  RegisterPage -> withLoginContainer m (Register.registerView)
+  LoginPage -> withLoginContainer m (Login.loginView m.user m.errorMessage)
+  RegisterPage -> withLoginContainer m (Register.registerView m.errorMessage)
   ChatPage -> withContainer m (Chat.chatView m.activeChatPartner m.messages m.chats m)
   NewChatPage -> withContainer m (NewChat.newChatView m.users)
   ProfilePage -> withContainer m (Profile.profileView m.user)
@@ -172,7 +172,8 @@ withLoginContainer model content =
     content
     ],
     div [id "bubble1"] [],
-    div [ class "server-message "] [text model.revicedMessageFromServer.msgType]
+    div [ class "server-message "] [text model.revicedMessageFromServer.msgType],
+    withErrorMessage model.errorMessage
   ]
 
 withContainer : Model -> Html Msg  -> Html Msg
@@ -181,8 +182,20 @@ withContainer model content =
   navigation model.page,
   content,
   secureSign,
-  div [ class "server-message "] [text model.revicedMessageFromServer.msgType]
+  div [ class "server-message "] [text model.revicedMessageFromServer.msgType],
+  withErrorMessage model.errorMessage
  ]
+
+withErrorMessage : String -> Html Msg
+withErrorMessage s = case s of 
+  "" -> div [] []
+  _ -> div [class "error-message"][
+        div [class "error-border"] [],
+        div [class "error-icon"] [],
+        div [class "error-text"] [
+          h2 [] [text "Error"],
+          p [] [text s]]
+      ]
 
 navigation : Page -> Html Msg
 navigation page = nav [class "sidebar"][

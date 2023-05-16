@@ -88,6 +88,14 @@ returnUser r = case r of
   Ok ok -> ok.user
   Err e -> {id = Debug.toString e, name = Debug.toString e}
 
+returnError : Result Error ErrorMessage -> String
+returnError r = case r of
+  Ok ok -> ok.error
+  Err e -> Debug.toString e
+  
+decodeError : D.Decoder ErrorMessage
+decodeError = D.map2 ErrorMessage (D.field "type" D.string) (D.field "error" D.string)
+
 
 decodeChatsLoaded : D.Decoder ChatsLoaded
 decodeChatsLoaded = D.map2 ChatsLoaded 
