@@ -13,7 +13,11 @@ import Types exposing (..)
 
 newChatView : List UserPreview -> Html Msg
 newChatView data = 
+  div [class "new-chat-container"] [
+    input [onInput Search, type_ "text", placeholder "Search", class "search"] [text "tse"],
   div [] (List.map userView data)
+  ]
+
 
 userView : UserPreview -> Html Msg
 userView user = 

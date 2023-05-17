@@ -23,7 +23,6 @@ import Json.Encode as E
 import Json.Decode as D
 import Services.JsonEncoder as ToJson exposing (..)
 import Html.Attributes exposing (classList)
-import Platform exposing (sendToApp)
 import Html exposing (s)
 
 
@@ -45,6 +44,7 @@ initialModel = ({
   user = initialUser,
   password = "",
   users = [exampleUserPreview, exampleUserPreview],
+  filteredUsers = [exampleUserPreview, exampleUserPreview],
   activeChatPartner = initialUser,
   messages = [],
   currentText = "",
@@ -67,8 +67,18 @@ exampleMessage = {
   receiver_id = "ExRecID",
   text = "Expample Text",
   sent_at = "ExSentAt",
-  received_at = Just "ExRecAt",
-  read_at = Just "ExReadAt"
+  received_at = Nothing,
+  read_at = Nothing
+  }
+newMessage :  Model-> Message
+newMessage model= {
+  id = "", 
+  sender_id = model.user.id,
+  receiver_id = model.activeChatPartner.id,
+  text = model.currentText,
+  sent_at = "",
+  received_at = Nothing,
+  read_at = Nothing
   }
 
 exampleChat : Chat
@@ -102,10 +112,20 @@ update msg model =
   (_, StartChat id) -> ({model | page = ChatPage}, sendMessage (ToJson.encodeStartChat id))
   (_, LoadMessages chatPreview) -> ({model | 
     page = ChatPage, 
-    activeChatPartner = chatPreview.user }, 
-    sendMessage (ToJson.encodeLoadMessages chatPreview.user.id))
-  (_, SendChatMessage) -> ({model | page = ChatPage, currentText=""}, sendMessage (ToJson.encodeSendMessage model.activeChatPartner.id model.currentText))
+    activeChatPartner = chatPreview.user },Cmd.batch[
+
+    sendMessage (ToJson.encodeLoadMessages chatPreview.user.id),
+    sendMessage (ToJson.encodeLoadChats)
+    ]
+    )
+  (_, SendChatMessage) -> ({model | currentText="", messages = ( model.messages  ++ [newMessage model] )}, sendMessage (ToJson.encodeSendMessage model.activeChatPartner.id model.currentText))
   (_, ChatInput i) -> ({model | currentText=i}, Cmd.none)
+  (_, SubmitReadMsg id) -> ({model | messages = List.map (\m -> if m.id == id then {m | read_at = Just "now"} else m) model.messages}, Cmd.batch [
+    sendMessage (ToJson.encodeMarkAsRead id),
+    sendMessage (ToJson.encodeLoadChats)
+    ])
+  (_, Search s) -> ({model | filteredUsers = List.filter (\u -> String.contains s u.user.name) model.users}, Cmd.none)
+
 
 
 manageAnswers : Answertype -> String -> Model -> (Model, Cmd Msg)
@@ -118,7 +138,7 @@ manageAnswers t data model = case t.msgType of
       chats = returnChats (D.decodeString decodeChatsLoaded data), 
       revicedMessageFromServer = {msgType = "chats_loaded"}
     }, Cmd.none)
-  "users_loaded" -> ({model | users = returnUsers (D.decodeString decodeUsersLoaded data), revicedMessageFromServer = {msgType = "users_loaded"}}, Cmd.none)
+  "users_loaded" -> ({model | users = returnUsers (D.decodeString decodeUsersLoaded data),filteredUsers = returnUsers(D.decodeString decodeUsersLoaded data), revicedMessageFromServer = {msgType = "users_loaded"}}, Cmd.none)
   "chat_loaded" -> ({model | 
       page = ChatPage, 
       messages = returnLoadMessages (D.decodeString decodeMessageLoaded data), 
@@ -126,15 +146,22 @@ manageAnswers t data model = case t.msgType of
       Cmd.none)
   "error" -> ({model | password = "", errorMessage = returnError (D.decodeString decodeError data)}, Cmd.none)
   "receive_message" -> ({model | 
-      revicedMessageFromServer = {msgType = "receive_message"}}, 
-      --produces an error
-      sendMessage (ToJson.encodeRecievedMessage (returnReceiveMessage (D.decodeString decodeReceiveMessage data))))
-      --Cmd.none)
+      revicedMessageFromServer = {msgType = "receive_message"}}, Cmd.batch[
+      sendMessage (ToJson.encodeLoadMessages model.activeChatPartner.id),
+      sendMessage (ToJson.encodeLoadChats),
+      --produces an erro
+      sendMessage (ToJson.encodeRecievedMessage (returnReceiveMessage (D.decodeString decodeReceiveMessage data)))
+      ])--Cmd.none)
   "user_created" -> ({model | users = returnUserCreated (D.decodeString decodeUserCreated data) :: model.users }, Cmd.none)
   "user_logged_in" -> ({model |users = 
     List.map (\ a -> if a.user.id == (returnUserLoggedIn (D.decodeString decodeUserLoggedIn data)) then {a | is_online = True} else a) model.users, revicedMessageFromServer = {msgType = "user_logged_in"}}, Cmd.none)
   "user_logged_out" -> ({model |users = 
     List.map (\ a -> if a.user.id == (returnUserLoggedOut (D.decodeString decodeUserLoggedOut data)) then {a | is_online = False} else a) model.users, revicedMessageFromServer = {msgType = "user_logged_out"}}, Cmd.none)
+  "message_read" -> ({model | 
+      messages = 
+        List.map (\ a -> if a.id == (returnMessageRead (D.decodeString decodeMessageRead data)) then {a | read_at = Just "now"} else a) model.messages}, Cmd.batch[
+          sendMessage (ToJson.encodeLoadChats),
+          sendMessage (ToJson.encodeLoadUsers)])
   _ -> (model, Cmd.none)
 
 changePage : Page -> Model -> (Model, Cmd Msg)
@@ -152,10 +179,10 @@ subscriptions _ =
 
 view : Model -> Html Msg
 view m = case m.page of
-  LoginPage -> withLoginContainer m (Login.loginView m.user m.errorMessage)
+  LoginPage -> withLoginContainer m (Login.loginView m.user)
   RegisterPage -> withLoginContainer m (Register.registerView m.errorMessage)
   ChatPage -> withContainer m (Chat.chatView m.activeChatPartner m.messages m.chats m)
-  NewChatPage -> withContainer m (NewChat.newChatView m.users)
+  NewChatPage -> withContainer m (NewChat.newChatView m.filteredUsers)
   ProfilePage -> withContainer m (Profile.profileView m.user)
 
 

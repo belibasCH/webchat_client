@@ -4,12 +4,14 @@ import Json.Decode as D
 import Json.Encode as E
 import Html.Attributes exposing (type_)
 import Html.Attributes exposing (id)
+import List exposing (filter)
 
 type alias Model = {
   page : Page,
   user : User,
   password : String,
   users : List UserPreview,
+  filteredUsers : List UserPreview,
   activeChatPartner : User,
   messages : List Message,
   currentText : String,
@@ -32,6 +34,8 @@ type Msg
     |   LoadMessages ChatPreview
     |   ChatInput String
     |   SendChatMessage
+    |   SubmitReadMsg String
+    |   Search String
   
 type alias ChatInfo = {
   currentText : String,

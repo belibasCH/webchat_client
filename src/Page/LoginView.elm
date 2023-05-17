@@ -8,8 +8,8 @@ import Html exposing (input, Attribute)
 import Types exposing (..)
 import Html.Events exposing (onInput)
 
-loginView : User -> String-> Html Msg
-loginView u errorMessage = 
+loginView : User -> Html Msg
+loginView u  = 
     div [class "login-wrapper"] [
       div [class "login-content"] [
       h1 [] [text "Login"],

@@ -64,6 +64,17 @@
 .chat .chat-item.me {
     align-self: flex-end;
 }
+.chat .chat-item.unread.you::after {
+    content: "";
+    position: absolute;
+    height: 15px;
+    width: 15px;
+    border-radius: 50%;
+    top: 0;
+    right: 0;
+    background-color: var(--primary-color);
+    cursor: pointer;
+}
 
 .chat-input {
     display: flex;

@@ -74,7 +74,13 @@ encodeReadMessage message_id =
 encodeRecievedMessage : String -> E.Value
 encodeRecievedMessage message_id =
   E.object
-    [ ("type", E.string "receive")
+    [ ("type", E.string "received")
+    , ("message_id", E.string message_id)
+    ]
+encodeMarkAsRead : String -> E.Value
+encodeMarkAsRead message_id =
+  E.object
+    [ ("type", E.string "read")
     , ("message_id", E.string message_id)
     ]
 
@@ -212,4 +218,14 @@ decodeMessageLoaded = D.map2 ChatLoaded
 
 decodeMessages : D.Decoder (List Message)
 decodeMessages = D.list decodeMessage
+
+decodeMessageRead : D.Decoder ReadMessage
+decodeMessageRead = D.map2 ReadMessage 
+  (D.field "type" D.string) 
+  (D.field "message_id" D.string)
+
+returnMessageRead : Result Error ReadMessage -> String
+returnMessageRead s = case s of
+  Ok ok -> ok.id
+  Err e -> "Error"
 

@@ -21,12 +21,17 @@ chatView partner messages chatList model =
       currentChatPartnerView partner,
       --Map over Messages an put it in a div
       div [class "chat"] (List.map (messageView model) (List.reverse(messages))  ),
-      inputField
+      inputField model
     ]
   ]
 
 messageView : Model-> Message -> Html Msg
-messageView model mes = div [classList [( "chat-item", True),("me", model.user.id == mes.sender_id)]] [
+messageView  model mes = div [classList [
+  ( "chat-item", True), 
+  ("unread", mes.read_at == Nothing),
+  ("me", model.user.id == mes.sender_id),
+  ("you", model.user.id /= mes.sender_id)
+  ], onClick (SubmitReadMsg mes.id)] [
            p [] [text mes.text]
            ]
 
@@ -45,15 +50,18 @@ contactPerson chatPreview activeChat = a [ if chatPreview.user.id == activeChat.
            h2 [] [text chatPreview.user.name],
            p [] [ text chatPreview.latest_message.text] ]
           ],
-            div [classList [("unread", True), ("show", chatPreview.unread_message_count > 0),  ("hide", chatPreview.unread_message_count == 0)] ] [ p [][text ((String.fromInt (chatPreview.unread_message_count)))]]
+            div [classList [
+              ("unread", True), 
+              ("show", chatPreview.unread_message_count > 0),  
+              ("hide", chatPreview.unread_message_count == 0)] ] [ p [][text ((String.fromInt (chatPreview.unread_message_count)))]]
          ]
            
 
 
 
-inputField : Html Msg
-inputField = div [class "chat-input"] [
-       textarea [ id "message", placeholder "Nachricht", onInput ChatInput] []
+inputField : Model ->  Html Msg
+inputField model= div [class "chat-input"] [
+       textarea [ id "message", placeholder "Nachricht",value model.currentText, onInput ChatInput] []
     , button [class "primary-button send"] [ div [class "send-icon", onClick SendChatMessage ] [] ]
     ]
 
