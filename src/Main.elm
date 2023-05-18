@@ -109,7 +109,7 @@ update msg model =
   (_, ChangeUserName u) -> ({model | user = {name = u, id = model.user.id}}, Cmd.none)
   (_, ChangePassword p) -> ({model | user = {name = model.user.name, id = model.user.id}, password = p}, Cmd.none)
   (_, SendNewPW) -> (model, Cmd.none)
-  (_, StartChat id) -> ({model | page = ChatPage}, sendMessage (ToJson.encodeStartChat id))
+  (_, StartChat userPreview) -> ({model | page = ChatPage, activeChatPartner = userPreview.user }, sendMessage (ToJson.encodeLoadMessages userPreview.user.id))
   (_, LoadMessages chatPreview) -> ({model | 
     page = ChatPage, 
     activeChatPartner = chatPreview.user },Cmd.batch[
@@ -166,7 +166,7 @@ manageAnswers t data model = case t.msgType of
 
 changePage : Page -> Model -> (Model, Cmd Msg)
 changePage p model = case p of 
-  NewChatPage -> ({model | page = p},Cmd.none)
+  NewChatPage -> ({model | page = p}, sendMessage (ToJson.encodeLoadUsers))
   ChatPage -> ({model | page = p}, sendMessage (ToJson.encodeLoadChats))
   LoginPage -> ({model | page = p}, Cmd.none)
   RegisterPage -> ({model | page = p}, Cmd.none)
@@ -182,7 +182,7 @@ view m = case m.page of
   LoginPage -> withLoginContainer m (Login.loginView m.user)
   RegisterPage -> withLoginContainer m (Register.registerView m.errorMessage)
   ChatPage -> withContainer m (Chat.chatView m.activeChatPartner m.messages m.chats m)
-  NewChatPage -> withContainer m (NewChat.newChatView m.filteredUsers)
+  NewChatPage -> withContainer m (NewChat.newChatView m)
   ProfilePage -> withContainer m (Profile.profileView m.user)
 
 

@@ -30,7 +30,7 @@ type Msg
     |   ChangeUserName String
     |   ChangePassword String
     |   SendNewPW
-    |   StartChat String
+    |   StartChat UserPreview
     |   LoadMessages ChatPreview
     |   ChatInput String
     |   SendChatMessage
