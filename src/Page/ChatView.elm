@@ -17,6 +17,9 @@ chatView partner messages chatList model =
     div [class "chat-list"]
       (List.map (\x -> contactPerson x (Chat partner messages)) chatList)
     ,
+    if (model.activeChatPartner.id == "") then
+    defaultView 
+    else
     div [ class "current-chat"][
       currentChatPartnerView partner,
       --Map over Messages an put it in a div
@@ -25,6 +28,14 @@ chatView partner messages chatList model =
     ]
   ]
 
+defaultView : Html Msg
+defaultView = div [class "no-chat"] [ 
+  div [class "no-chat-icon"] [],
+  h1 [][text "Kein Chat ausgewählt"],
+  p [][text "Wähle einen Chat aus der Liste aus"]
+
+
+  ]
 messageView : Model-> Message -> Html Msg
 messageView  model mes = div [classList [
   ( "chat-item", True), 
@@ -32,7 +43,11 @@ messageView  model mes = div [classList [
   ("me", model.user.id == mes.sender_id),
   ("you", model.user.id /= mes.sender_id)
   ], onClick (SubmitReadMsg mes.id)] [
-           p [] [text mes.text]
+          p [] [text mes.text],
+          p [] [text ("read: "++(withDefault "" mes.read_at))],
+          p [] [text ("recived: "++(withDefault "" mes.received_at))],
+          p [] [text ("send: "++ mes.sent_at)]
+
            ]
 
 contactList : List ChatPreview -> Chat -> Html Msg

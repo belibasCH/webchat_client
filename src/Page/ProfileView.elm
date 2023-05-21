@@ -14,7 +14,7 @@ import Types exposing (..)
 profileView : User -> Html Msg
 profileView user = 
   div [class "change-profile-box"] [
-    img [src "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?cs=srgb&dl=pexels-pixabay-220453.jpg&fm=jpg", class "profile-avatar"] [],
+    img [src (withDefault "" user.avatar), class "profile-avatar"] [],
     div [class "profile-details"][
     h1 [] [text "Profile"],
     p [] [text ("Id: "++user.id)],

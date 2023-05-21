@@ -17,7 +17,7 @@ exampleMessage = {
 
 errorChatPreview : ChatPreview
 errorChatPreview = {
-  user = {id = "Error", name = "Error"},
+  user = {id = "Error", name = "Error", avatar = Nothing},
   latest_message = exampleMessage,
   total_message_count = 3,
   unread_message_count = 1 
@@ -95,17 +95,17 @@ encodeSendMessage receiver_id text =
 returnChats : Result Error ChatsLoaded -> List ChatPreview
 returnChats r = case r of
   Ok ok -> ok.chats
-  Err e -> [{errorChatPreview | user = {id = Debug.toString e, name = Debug.toString e}}]
+  Err e -> []
 
 returnUsers : Result Error UsersLoaded -> List UserPreview
 returnUsers r = case r of
   Ok ok -> ok.users
-  Err e -> [{user = {id = Debug.toString e, name = Debug.toString e}, is_online = False}]
+  Err e -> []
 
 returnUser : Result Error LoginSucceded ->  User
 returnUser r = case r of
   Ok ok -> ok.user
-  Err e -> {id = Debug.toString e, name = Debug.toString e}
+  Err e -> {id = Debug.toString e, name = Debug.toString e, avatar = Nothing}
 
 returnError : Result Error ErrorMessage -> String
 returnError r = case r of
@@ -120,7 +120,7 @@ returnReceiveMessage r = case r of
 returnUserCreated : Result Error UserCreated -> UserPreview
 returnUserCreated r = case r of
   Ok ok -> {user = ok.user, is_online = False}
-  Err e -> {user = {id = Debug.toString e, name = Debug.toString e}, is_online = False}
+  Err e -> {user = {id = Debug.toString e, name = Debug.toString e, avatar = Nothing}, is_online = False}
 
 returnUserLoggedIn : Result Error UserLoggedIn -> String
 returnUserLoggedIn r = case r of
@@ -199,12 +199,12 @@ decodeLoginSucceded : D.Decoder LoginSucceded
 decodeLoginSucceded = D.map2 LoginSucceded (D.field "type" D.string) (D.field "user" decodeUser)
     
 decodeUser : D.Decoder User
-decodeUser = D.map2 User (D.field "name" D.string)  (D.field "id" D.string) 
+decodeUser = D.map3 User (D.field "name" D.string)  (D.field "id" D.string) (D.field "avatar" (D.nullable D.string))
 
 returnSave : Result Error LoginSucceded -> LoginSucceded
 returnSave s = case s of
   Ok ok -> ok
-  Err e -> LoginSucceded "Error" {id = "Error", name = "Error"}
+  Err e -> LoginSucceded "Error" {id = "Error", name = "Error" , avatar = Nothing}
 
 returnLoadMessages : Result Error ChatLoaded -> List Message
 returnLoadMessages s = case s of

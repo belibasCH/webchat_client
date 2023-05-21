@@ -36,6 +36,7 @@ type Msg
     |   SendChatMessage
     |   SubmitReadMsg String
     |   Search String
+    |   SetAvatar String
   
 type alias ChatInfo = {
   currentText : String,
@@ -53,7 +54,6 @@ type alias ChatPreview = {
     total_message_count : Int,
     unread_message_count : Int
     }
-
 
 type Page 
   = LoginPage
@@ -77,7 +77,8 @@ type alias Message = {
   }
 type alias User = {
   name : String,
-  id : String
+  id : String,
+  avatar : Maybe String
   }
 
 type alias LoginSucceded = {

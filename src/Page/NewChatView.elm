@@ -15,7 +15,7 @@ newChatView : Model -> Html Msg
 newChatView data = 
   div [class "new-chat-container"] [
     input [onInput Search, type_ "text", placeholder "Search", class "search"] [text "tse"],
-  div [class "user-list"] (List.map (userView data) data.users)
+  div [class "user-list"] (List.map (userView data) data.filteredUsers)
   ]
 
 

@@ -43,23 +43,23 @@ initialModel = ({
   page = LoginPage,
   user = initialUser,
   password = "",
-  users = [exampleUserPreview, exampleUserPreview],
-  filteredUsers = [exampleUserPreview, exampleUserPreview],
+  users = [],
+  filteredUsers = [],
   activeChatPartner = initialUser,
   messages = [],
   currentText = "",
   errorMessage = "",
-  chats = [exampleChatPreview, exampleChatPreview],
+  chats = [],
   revicedMessageFromServer = {msgType = "nothing"}},  Cmd.none)
 
 initialUser : User
-initialUser = {name = "", id = ""}
+initialUser = {name = "", id = "", avatar = Just ""}
 
 exampleUserPreview : UserPreview
 exampleUserPreview = {user = initialUser, is_online = True}
 
 exampleRecivedMessageFromServer : LoginSucceded
-exampleRecivedMessageFromServer = { msgType = "", user = {id = "exID", name = "ExName"}}
+exampleRecivedMessageFromServer = { msgType = "", user = {id = "exID", name = "ExName", avatar = Just "ExAvatar"}}
 exampleMessage : Message
 exampleMessage = {
   id = "ExID", 
@@ -83,12 +83,12 @@ newMessage model= {
 
 exampleChat : Chat
 exampleChat = {
-  user = {name="ExName", id="ExID"},
+  user = {name="ExName", id="ExID", avatar = Just "ExAvatar"},
   messages = [exampleMessage, exampleMessage, exampleMessage]
   }
 exampleChatPreview : ChatPreview
 exampleChatPreview = {
-  user = {name="ExName", id="ExID"},
+  user = {name="ExName", id="ExID", avatar = Just "ExAvatar"},
   latest_message = exampleMessage,
   total_message_count = 3,
   unread_message_count = 1 
@@ -99,21 +99,21 @@ exampleChatPreview = {
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case (model.page, msg) of
-  (_, SetUsername u) -> ({model | user = {name = u, id = model.user.id}}, Cmd.none)
-  (_, SetPassword p) -> ({model | user = {name = model.user.name, id = model.user.id}, password = p}, Cmd.none)
-  (_, ValidatePassword p)-> ({model | user = {name = model.user.name, id = model.user.id}}, Cmd.none)
+  (_, SetUsername u) -> ({model | user = {name = u, id = model.user.id, avatar = model.user.avatar}}, Cmd.none)
+  (_, SetPassword p) -> ({model | user = {name = model.user.name, id = model.user.id, avatar = model.user.avatar}, password = p}, Cmd.none)
+  (_, SetAvatar a) -> ({model | user = {name = model.user.name, id = model.user.id, avatar = Just a}}, Cmd.none)
+  (_, ValidatePassword p)-> (model, Cmd.none)
   (_, SubmitRegistration) -> (model, sendMessage (ToJson.encodeRegisterUser model.user model.password))
   (_, SubmitLogin) -> ( model , sendMessage (ToJson.encodeLogin model.user model.password))
   (_, Recv s) -> manageAnswers (returnTypeSave (D.decodeString decodeType s)) s model
   (_, SetPage p) -> changePage p model
-  (_, ChangeUserName u) -> ({model | user = {name = u, id = model.user.id}}, Cmd.none)
-  (_, ChangePassword p) -> ({model | user = {name = model.user.name, id = model.user.id}, password = p}, Cmd.none)
+  (_, ChangeUserName u) -> ({model | user = {name = u, id = model.user.id, avatar = model.user.avatar}}, Cmd.none)
+  (_, ChangePassword p) -> ({model | user = {name = model.user.name, id = model.user.id, avatar = model.user.avatar}, password = p}, Cmd.none)
   (_, SendNewPW) -> (model, Cmd.none)
   (_, StartChat userPreview) -> ({model | page = ChatPage, activeChatPartner = userPreview.user }, sendMessage (ToJson.encodeLoadMessages userPreview.user.id))
   (_, LoadMessages chatPreview) -> ({model | 
     page = ChatPage, 
     activeChatPartner = chatPreview.user },Cmd.batch[
-
     sendMessage (ToJson.encodeLoadMessages chatPreview.user.id),
     sendMessage (ToJson.encodeLoadChats)
     ]
@@ -138,7 +138,7 @@ manageAnswers t data model = case t.msgType of
       chats = returnChats (D.decodeString decodeChatsLoaded data), 
       revicedMessageFromServer = {msgType = "chats_loaded"}
     }, Cmd.none)
-  "users_loaded" -> ({model | users = returnUsers (D.decodeString decodeUsersLoaded data),filteredUsers = returnUsers(D.decodeString decodeUsersLoaded data), revicedMessageFromServer = {msgType = "users_loaded"}}, Cmd.none)
+  "users_loaded" -> ({model | users = returnUsers (D.decodeString decodeUsersLoaded data), filteredUsers = returnUsers(D.decodeString decodeUsersLoaded data), revicedMessageFromServer = {msgType = "users_loaded"}}, Cmd.none)
   "chat_loaded" -> ({model | 
       page = ChatPage, 
       messages = returnLoadMessages (D.decodeString decodeMessageLoaded data), 
