@@ -5,6 +5,7 @@ import Json.Encode as E
 import Html.Attributes exposing (type_)
 import Html.Attributes exposing (id)
 import List exposing (filter)
+import File exposing (File)
 
 type alias Model = {
   page : Page,
@@ -27,8 +28,8 @@ type Msg
     |   SetPassword String
     |   ValidatePassword String
     |   SetPage Page
-    |   ChangeUserName String
-    |   ChangePassword String
+    |   ChangeUserName
+    |   ChangePassword 
     |   SendNewPW
     |   StartChat UserPreview
     |   LoadMessages ChatPreview
@@ -37,6 +38,9 @@ type Msg
     |   SubmitReadMsg String
     |   Search String
     |   SetAvatar String
+    |   ChangeAvatar 
+    |   GotFile File
+    |   ImageLoaded String
   
 type alias ChatInfo = {
   currentText : String,

@@ -43,10 +43,7 @@ messageView  model mes = div [classList [
   ("me", model.user.id == mes.sender_id),
   ("you", model.user.id /= mes.sender_id)
   ], onClick (SubmitReadMsg mes.id)] [
-          p [] [text mes.text],
-          p [] [text ("read: "++(withDefault "" mes.read_at))],
-          p [] [text ("recived: "++(withDefault "" mes.received_at))],
-          p [] [text ("send: "++ mes.sent_at)]
+          p [] [text mes.text]
 
            ]
 
@@ -60,7 +57,8 @@ contactList chats activeChat =
 contactPerson :  ChatPreview -> Chat ->  Html Msg
 contactPerson chatPreview activeChat = a [ if chatPreview.user.id == activeChat.user.id then class "contact-preview active" else class "contact-preview", onClick (LoadMessages chatPreview)] [
           div [class "contact-details"][
-          img [src "https://www.w3schools.com/howto/img_avatar.png", class "avatar"] [],
+         img [src (withDefault "" chatPreview.user.avatar), class "avatar"] [],
+    
           div [class "contact-text"] [
            h2 [] [text chatPreview.user.name],
            p [] [ text chatPreview.latest_message.text] ]
@@ -84,7 +82,7 @@ inputField model= div [class "chat-input"] [
 
 currentChatPartnerView : User -> Html Msg
 currentChatPartnerView user = div [class "current-chatpartner-profile"] [
-          img [src "https://www.w3schools.com/howto/img_avatar.png", class "avatar"] [],
+          img [src (withDefault "" user.avatar), class "avatar"] [],
           div [class "contact-text"] [
             h2 [] [text user.name],
            p [] [text ""]

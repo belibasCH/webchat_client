@@ -14,7 +14,7 @@
         var(--border-radius)
         0 ;
     border-right: 1px solid white;
-    width: 200px;
+    min-width: 200px;
 }
 .chat-list::-webkit-scrollbar {
     display: none;

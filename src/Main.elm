@@ -24,6 +24,10 @@ import Json.Decode as D
 import Services.JsonEncoder as ToJson exposing (..)
 import Html.Attributes exposing (classList)
 import Html exposing (s)
+import File exposing (File)
+import Task
+import Services.InitialData exposing (..)
+import Base64
 
 
 main : Program () Model Msg
@@ -38,63 +42,6 @@ main =
 port sendMessage : E.Value -> Cmd msg
 port messageReceiver : (String -> msg) -> Sub msg
 
-initialModel : (Model, Cmd Msg)
-initialModel = ({
-  page = LoginPage,
-  user = initialUser,
-  password = "",
-  users = [],
-  filteredUsers = [],
-  activeChatPartner = initialUser,
-  messages = [],
-  currentText = "",
-  errorMessage = "",
-  chats = [],
-  revicedMessageFromServer = {msgType = "nothing"}},  Cmd.none)
-
-initialUser : User
-initialUser = {name = "", id = "", avatar = Just ""}
-
-exampleUserPreview : UserPreview
-exampleUserPreview = {user = initialUser, is_online = True}
-
-exampleRecivedMessageFromServer : LoginSucceded
-exampleRecivedMessageFromServer = { msgType = "", user = {id = "exID", name = "ExName", avatar = Just "ExAvatar"}}
-exampleMessage : Message
-exampleMessage = {
-  id = "ExID", 
-  sender_id = "ExSenID",
-  receiver_id = "ExRecID",
-  text = "Expample Text",
-  sent_at = "ExSentAt",
-  received_at = Nothing,
-  read_at = Nothing
-  }
-newMessage :  Model-> Message
-newMessage model= {
-  id = "", 
-  sender_id = model.user.id,
-  receiver_id = model.activeChatPartner.id,
-  text = model.currentText,
-  sent_at = "",
-  received_at = Nothing,
-  read_at = Nothing
-  }
-
-exampleChat : Chat
-exampleChat = {
-  user = {name="ExName", id="ExID", avatar = Just "ExAvatar"},
-  messages = [exampleMessage, exampleMessage, exampleMessage]
-  }
-exampleChatPreview : ChatPreview
-exampleChatPreview = {
-  user = {name="ExName", id="ExID", avatar = Just "ExAvatar"},
-  latest_message = exampleMessage,
-  total_message_count = 3,
-  unread_message_count = 1 
-  }
-  
-
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -103,12 +50,13 @@ update msg model =
   (_, SetPassword p) -> ({model | user = {name = model.user.name, id = model.user.id, avatar = model.user.avatar}, password = p}, Cmd.none)
   (_, SetAvatar a) -> ({model | user = {name = model.user.name, id = model.user.id, avatar = Just a}}, Cmd.none)
   (_, ValidatePassword p)-> (model, Cmd.none)
-  (_, SubmitRegistration) -> (model, sendMessage (ToJson.encodeRegisterUser model.user model.password))
+  (_, SubmitRegistration) -> ({model | page = LoginPage}, sendMessage (ToJson.encodeRegisterUser model.user model.password))
   (_, SubmitLogin) -> ( model , sendMessage (ToJson.encodeLogin model.user model.password))
   (_, Recv s) -> manageAnswers (returnTypeSave (D.decodeString decodeType s)) s model
   (_, SetPage p) -> changePage p model
-  (_, ChangeUserName u) -> ({model | user = {name = u, id = model.user.id, avatar = model.user.avatar}}, Cmd.none)
-  (_, ChangePassword p) -> ({model | user = {name = model.user.name, id = model.user.id, avatar = model.user.avatar}, password = p}, Cmd.none)
+  (_, ChangeUserName) -> (model, sendMessage (ToJson.encodeChangeUserName model.user.name))
+  (_, ChangePassword) -> (model, sendMessage (ToJson.encodeChangePassword model.password))
+  (_, ChangeAvatar) -> (model, sendMessage (ToJson.encodeChangeAvatar (withDefault "" model.user.avatar)))
   (_, SendNewPW) -> (model, Cmd.none)
   (_, StartChat userPreview) -> ({model | page = ChatPage, activeChatPartner = userPreview.user }, sendMessage (ToJson.encodeLoadMessages userPreview.user.id))
   (_, LoadMessages chatPreview) -> ({model | 
@@ -125,8 +73,15 @@ update msg model =
     sendMessage (ToJson.encodeLoadChats)
     ])
   (_, Search s) -> ({model | filteredUsers = List.filter (\u -> String.contains s u.user.name) model.users}, Cmd.none)
+  (_, GotFile f) -> (model,  read f)
+  (_, ImageLoaded s) -> ({model | user = {name = model.user.name, id = model.user.id, avatar = Just ( s)}}, 
+   sendMessage (ToJson.encodeChangeAvatar s))
 
+  
 
+read : File -> Cmd Msg
+read file =
+  Task.perform ImageLoaded (File.toUrl file)
 
 manageAnswers : Answertype -> String -> Model -> (Model, Cmd Msg)
 manageAnswers t data model = case t.msgType of 

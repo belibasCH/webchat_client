@@ -4,6 +4,7 @@ import Types exposing (..)
 import Json.Decode exposing (Error)
 import Json.Decode exposing (decodeString)
 import Json.Decode as D
+import Maybe exposing (withDefault)
 exampleMessage : Message
 exampleMessage = {
   id = "ExID", 
@@ -29,6 +30,7 @@ encodeRegisterUser u pw =
     [ ("type", E.string "create_user")
     , ("username", E.string u.name)
     , ("password", E.string pw)
+    , ("avatar", E.string (withDefault "" u.avatar))
     ]
 
 encodeLogin : User -> String -> E.Value
@@ -90,6 +92,27 @@ encodeSendMessage receiver_id text =
     [ ("type", E.string "send")
     , ("receiver_id", E.string receiver_id)
     , ("text", E.string text)
+    ]
+
+encodeChangeAvatar : String -> E.Value
+encodeChangeAvatar avatar =
+  E.object
+    [ ("type", E.string "change_avatar")
+    , ("avatar", E.string avatar)
+    ]
+
+encodeChangeUserName : String -> E.Value
+encodeChangeUserName name =
+  E.object
+    [ ("type", E.string "change_username")
+    , ("username", E.string name)
+    ]
+
+encodeChangePassword : String -> E.Value
+encodeChangePassword password =
+  E.object
+    [ ("type", E.string "change_password")
+    , ("password", E.string password)
     ]
     
 returnChats : Result Error ChatsLoaded -> List ChatPreview
