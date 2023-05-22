@@ -19,31 +19,32 @@ profileView : User -> Html Msg
 profileView user = 
   div [class "profile-container"] [
     h1 [] [text "Profile"],
+    div [class "profile-avatar-box"] [
+      img [src ((withDefault "" user.avatar)), class "profile-avatar"] [] ,
+      label [class "file-upload"][
+        input [class "form-control", type_ "file", on "change" (D.map GotFile filesDecoder) ] [],
+        div [class "edit-icon"][]
+      ]
     
-    img [src ((withDefault "" user.avatar)), class "profile-avatar"] []    ,
-    input [class "form-control", type_ "file", on "change" (D.map GotFile filesDecoder) ] [],
+    ],
+ 
      div [class "change-profile-box"] [
     div [class "input-group"] [
       label [] [text "Username"],
       input [class "form-control", type_ "text", value user.name, onInput SetUsername] []
     ],
-    button [class "primary-button send", onClick ChangeUserName] [text "save"]
+    button [class "primary-button send", onClick ChangeUserName] [div [class "save-icon"][]]
     ],
+    
     div [class "change-profile-box"] [
     div [class "input-group"] [
       label [] [text "Set new password"],
       input [class "form-control", type_ "text", placeholder "***", onInput SetPassword] []
     ],
-    button [class "primary-button send", onClick ChangePassword] [text "save"]
+    button [class "primary-button send", onClick ChangePassword] [div [class "save-icon"][]]
     ]
-    
-     
+   
   ]
-
--- readFile : File -> Cmd Msg
--- readFile file =   
---   Task.perform GotFiles (File.toString file)
- 
 
 filesDecoder : D.Decoder File
 filesDecoder =

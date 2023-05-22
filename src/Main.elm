@@ -121,11 +121,11 @@ manageAnswers t data model = case t.msgType of
 
 changePage : Page -> Model -> (Model, Cmd Msg)
 changePage p model = case p of 
-  NewChatPage -> ({model | page = p}, sendMessage (ToJson.encodeLoadUsers))
-  ChatPage -> ({model | page = p}, sendMessage (ToJson.encodeLoadChats))
-  LoginPage -> ({model | page = p}, Cmd.none)
-  RegisterPage -> ({model | page = p}, Cmd.none)
-  ProfilePage -> ({model | page = p}, Cmd.none)
+  NewChatPage -> ({model | page = p, errorMessage = ""}, sendMessage (ToJson.encodeLoadUsers))
+  ChatPage -> ({model | page = p, errorMessage = ""}, sendMessage (ToJson.encodeLoadChats))
+  LoginPage -> ({model | page = p, errorMessage = ""}, Cmd.none)
+  RegisterPage -> ({model | page = p, errorMessage = ""}, Cmd.none)
+  ProfilePage -> ({model | page = p, errorMessage = ""}, Cmd.none)
 
 
 subscriptions : Model -> Sub Msg

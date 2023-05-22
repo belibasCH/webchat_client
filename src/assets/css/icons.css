@@ -67,3 +67,23 @@
     mask-repeat: no-repeat; 
     mask-size: cover;
 }
+.edit-icon  {
+    background-color: black;
+    width: 20px;
+    height: 20px;
+    -webkit-mask-image: url(/assets/img/edit-icon.svg);
+    mask-image:  url(/assets/img/edit-icon.svg);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat; 
+    mask-size: cover;
+}
+.save-icon  {
+    background-color: black;
+    width: 20px;
+    height: 20px;
+    -webkit-mask-image: url(/assets/img/save-icon.svg);
+    mask-image:  url(/assets/img/save-icon.svg);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat; 
+    mask-size: cover;
+}
