@@ -3,6 +3,7 @@ module Services.CryptoStringAes exposing (doDecrypt, doEncrypt)
 import Crypto.Strings exposing (decrypt, encrypt)
 import Crypto.Strings.Types exposing (Passphrase, Plaintext, Ciphertext)
 import Random exposing (Seed, initialSeed)
+import Random exposing (initialSeed)
 
 {-| In real code, you'd pass in a seed created from a time, not a time.
 -}

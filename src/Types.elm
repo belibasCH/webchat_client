@@ -18,7 +18,8 @@ type alias Model = {
   currentText : String,
   errorMessage : String,
   chats : List ChatPreview,
-  revicedMessageFromServer : Answertype
+  revicedMessageFromServer : Answertype,
+  prime : Prime
   }
 type Msg
   =   SubmitRegistration
@@ -41,6 +42,8 @@ type Msg
     |   ChangeAvatar 
     |   GotFile File
     |   ImageLoaded String
+    |   PrimePQ (Int, Int)
+    |   GeneratePrimes
   
 type alias ChatInfo = {
   currentText : String,
@@ -130,4 +133,9 @@ type alias UserLoggedIn = {
 type alias UserLoggedOut = {
   msgType : String,
   id : String
+  }
+
+type alias Prime = {
+  p : Int,
+  q : Int
   }

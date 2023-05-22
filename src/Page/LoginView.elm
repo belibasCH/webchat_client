@@ -16,7 +16,9 @@ loginView u  =
       input [class "login-input", type_ "text", value u.name, placeholder "Username", onInput SetUsername] [],
       input [class "login-input", type_ "password", placeholder "Password", onInput SetPassword] []
       ],
-      button [class "primary-button login", onClick SubmitLogin] [text "Login"]
+      button [class "primary-button login", onClick SubmitLogin] [text "Login"],
+      button [class "primary-button login", onClick GeneratePrimes ] [text "Funktionstest"]
+      
     
     ]
   

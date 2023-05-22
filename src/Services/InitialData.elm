@@ -14,7 +14,9 @@ initialModel = ({
   currentText = "",
   errorMessage = "",
   chats = [],
-  revicedMessageFromServer = {msgType = "nothing"}},  Cmd.none)
+  revicedMessageFromServer = {msgType = "nothing"},
+  prime = { p = 0, q = 0 }}, 
+  Cmd.none)
 
 exampleUserPreview : UserPreview
 exampleUserPreview = {user = initialUser, is_online = True}

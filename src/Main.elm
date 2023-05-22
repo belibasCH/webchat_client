@@ -28,6 +28,9 @@ import File exposing (File)
 import Task
 import Services.InitialData exposing (..)
 import Base64
+import Services.Rsa exposing (generatePrimes)
+import Tuple exposing (first)
+import Tuple exposing (second)
 
 
 main : Program () Model Msg
@@ -76,6 +79,8 @@ update msg model =
   (_, GotFile f) -> (model,  read f)
   (_, ImageLoaded s) -> ({model | user = {name = model.user.name, id = model.user.id, avatar = Just ( s)}}, 
    sendMessage (ToJson.encodeChangeAvatar s))
+  (_, GeneratePrimes) -> (model, generatePrimes) 
+  (_, PrimePQ n) -> ( {model | prime = { p = (first n), q = (second n)}}, Cmd.none)
 
   
 
