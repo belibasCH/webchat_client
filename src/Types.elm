@@ -6,6 +6,7 @@ import Html.Attributes exposing (type_)
 import Html.Attributes exposing (id)
 import List exposing (filter)
 import File exposing (File)
+import Browser.Navigation exposing (Key)
 
 type alias Model = {
   page : Page,
@@ -19,7 +20,9 @@ type alias Model = {
   errorMessage : String,
   chats : List ChatPreview,
   revicedMessageFromServer : Answertype,
-  prime : Prime
+  prime : Prime,
+  publicKey : PublicKey,
+  privateKey : PrivateKey
   }
 type Msg
   =   SubmitRegistration
@@ -138,4 +141,21 @@ type alias UserLoggedOut = {
 type alias Prime = {
   p : Int,
   q : Int
+  }
+
+type alias PublicKey = {
+  e : Int,
+  n : Int
+  }
+
+type alias PrivateKey = {
+  p : Int,
+  q : Int,
+  phi : Int,
+  d : Int
+  }
+
+type alias KeyPair = {
+  publicKey : PublicKey,
+  privateKey : PrivateKey
   }

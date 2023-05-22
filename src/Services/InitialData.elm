@@ -15,7 +15,9 @@ initialModel = ({
   errorMessage = "",
   chats = [],
   revicedMessageFromServer = {msgType = "nothing"},
-  prime = { p = 0, q = 0 }}, 
+  prime = { p = 0, q = 0 }, 
+  publicKey = {e = 0, n = 0},
+  privateKey = {p = 0, q = 0, phi = 0, d = 0} },
   Cmd.none)
 
 exampleUserPreview : UserPreview
