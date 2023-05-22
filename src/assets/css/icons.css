@@ -4,10 +4,11 @@
     background-color: black;
     width: 15.71px;
     height: 20px;
-    -webkit-mask-image: url(/assets/img/secure-icon.svg);
-    mask-image:  url(/assets/img/secure-icon.svg);
+    -webkit-mask-image: url(/assets/img/shield-icon.svg);
+    mask-image:  url(/assets/img/shield-icon.svg);
     -webkit-mask-repeat: no-repeat;
     mask-repeat: no-repeat; 
+    mask-size: cover;
 }
 .chats-icon {
     background-color: black;
@@ -44,4 +45,25 @@
     mask-image:  url(/assets/img/send-icon.svg);
     -webkit-mask-repeat: no-repeat;
     mask-repeat: no-repeat; 
+    mask-size: cover;
+}
+.start-icon {
+    background-color: white;
+    width: 20px;
+    height: 20px;
+    -webkit-mask-image: url(/assets/img/newChat-icon.svg);
+    mask-image:  url(/assets/img/newChat-icon.svg);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat; 
+    mask-size: cover;
+}
+.no-chat-icon {
+    background-color: black;
+    width: 20px;
+    height: 20px;
+    -webkit-mask-image: url(/assets/img/unlock-icon.svg);
+    mask-image:  url(/assets/img/unlock-icon.svg);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat; 
+    mask-size: cover;
 }

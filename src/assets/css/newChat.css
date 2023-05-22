@@ -1,0 +1,88 @@
+.new-chat-container{
+    width: 100%;
+    padding:  var(--default-padding);
+    overflow: scroll;
+    z-index: 0;
+  
+}
+.new-chat-container .search {
+    width: 100%;
+    border-radius: var(--border-radius);
+    background-color: var(--glass-color);
+    margin-bottom: var(--default-padding);
+    padding: var(--default-padding);
+    height: 50px;
+    border: 1px solid white;
+}
+.user-list{
+    height:calc(100% - 50px - var(--default-padding));
+    display: flex;
+    flex-direction: column
+    ;
+    gap: var(--default-padding);
+    overflow-y: scroll;
+    padding-right: var(--default-padding);
+    position: relative;
+    z-index: 1;
+}
+
+.user-preview{
+    display: flex;      
+    background-color: var(--glass-color);
+    border-radius: var(--border-radius);
+    justify-content: space-between;
+    padding: var(--small-padding);
+
+}
+.user-preview.me {
+    border: 1px solid var(--primary-color);
+    order: -1;
+}
+.user-preview.me::before {
+    content: "Your Profile";
+    position: absolute;
+    top: 0;
+    font-size: 80%;
+    border-radius: 18px 0 10px 0;
+    padding: 2px 15px 2px 15px;
+    left: 0;
+    background-color: var(--primary-color);
+    z-index: 99;
+}
+
+
+.user-preview .avatar{
+    height: 50px;
+    width: 50px;
+    border-radius: 50%;
+    align-self: center;
+}
+.user-col{
+    display: flex;
+    flex-direction: column;
+    padding: var(--small-padding);
+}
+.user-col .user-label{
+    font-size: 0.9rem;
+
+}
+.user-col .user-content{
+    font-size: 1rem;
+    font-weight: bold;
+}
+.user-col .user-content.online{
+    color: green;
+}
+.user-col .user-content.offline{
+    color: red;
+}
+.start-chat{
+    height: 50px;
+    width: 50px;
+    padding: var(--small-padding);
+    background-color: var(--primary-color);
+    align-self: center;
+}
+.start-chat .user-icon {
+    color: white;
+}
