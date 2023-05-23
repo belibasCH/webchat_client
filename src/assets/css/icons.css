@@ -38,7 +38,7 @@
     mask-repeat: no-repeat; 
 }
 .send-icon {
-    background-color: white;
+    background-color: black;
     width: 20px;
     height: 20px;
     -webkit-mask-image: url(/assets/img/send-icon.svg);
@@ -48,7 +48,7 @@
     mask-size: cover;
 }
 .start-icon {
-    background-color: white;
+    background-color: black;
     width: 20px;
     height: 20px;
     -webkit-mask-image: url(/assets/img/newChat-icon.svg);
