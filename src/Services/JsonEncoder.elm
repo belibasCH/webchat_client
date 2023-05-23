@@ -2,7 +2,6 @@ module Services.JsonEncoder exposing (..)
 import Json.Encode as E
 import Types exposing (..)
 import Json.Decode exposing (Error)
-import Json.Decode exposing (decodeString)
 import Json.Decode as D
 import Maybe exposing (withDefault)
 exampleMessage : Message
@@ -118,42 +117,42 @@ encodeChangePassword password =
 returnChats : Result Error ChatsLoaded -> List ChatPreview
 returnChats r = case r of
   Ok ok -> ok.chats
-  Err e -> []
+  Err _ -> []
 
 returnUsers : Result Error UsersLoaded -> List UserPreview
 returnUsers r = case r of
   Ok ok -> ok.users
-  Err e -> []
+  Err _ -> []
 
 returnUser : Result Error LoginSucceded ->  User
 returnUser r = case r of
   Ok ok -> ok.user
-  Err e -> {id = Debug.toString e, name = Debug.toString e, avatar = Nothing}
+  Err _ -> {id = "", name = "", avatar = Nothing}
 
 returnError : Result Error ErrorMessage -> String
 returnError r = case r of
   Ok ok -> ok.error
-  Err e -> Debug.toString e
+  Err _ -> ""
 
 returnReceiveMessage : Result Error ReceiveMessage -> String
 returnReceiveMessage r = case r of
   Ok ok -> ok.message.id
-  Err e -> "Error decoding message" 
+  Err _ -> "Error decoding message" 
 
 returnUserCreated : Result Error UserCreated -> UserPreview
 returnUserCreated r = case r of
   Ok ok -> {user = ok.user, is_online = False}
-  Err e -> {user = {id = Debug.toString e, name = Debug.toString e, avatar = Nothing}, is_online = False}
+  Err _ -> {user = {id = "", name = "", avatar = Nothing}, is_online = False}
 
 returnUserLoggedIn : Result Error UserLoggedIn -> String
 returnUserLoggedIn r = case r of
   Ok ok -> ok.id
-  Err e -> Debug.toString e
+  Err _ -> ""
 
 returnUserLoggedOut : Result Error UserLoggedOut -> String
 returnUserLoggedOut r = case r of
   Ok ok -> ok.id
-  Err e -> Debug.toString e
+  Err _ -> ""
 
 
 decodeError : D.Decoder ErrorMessage
@@ -215,7 +214,7 @@ decodeType = D.map Answertype (D.field "type" D.string)
 returnTypeSave : Result Error Answertype -> Answertype
 returnTypeSave r = case r of
   Ok ok -> ok
-  Err e -> Answertype "Error"
+  Err _ -> Answertype "Error"
   
 
 decodeLoginSucceded : D.Decoder LoginSucceded
@@ -227,12 +226,12 @@ decodeUser = D.map3 User (D.field "name" D.string)  (D.field "id" D.string) (D.f
 returnSave : Result Error LoginSucceded -> LoginSucceded
 returnSave s = case s of
   Ok ok -> ok
-  Err e -> LoginSucceded "Error" {id = "Error", name = "Error" , avatar = Nothing}
+  Err _ -> LoginSucceded "Error" {id = "Error", name = "Error" , avatar = Nothing}
 
 returnLoadMessages : Result Error ChatLoaded -> List Message
 returnLoadMessages s = case s of
   Ok ok -> ok.messages
-  Err e -> []
+  Err _ -> []
 
 decodeMessageLoaded : D.Decoder ChatLoaded
 decodeMessageLoaded = D.map2 ChatLoaded 
@@ -250,5 +249,5 @@ decodeMessageRead = D.map2 ReadMessage
 returnMessageRead : Result Error ReadMessage -> String
 returnMessageRead s = case s of
   Ok ok -> ok.id
-  Err e -> "Error"
+  Err _ -> "Error"
 

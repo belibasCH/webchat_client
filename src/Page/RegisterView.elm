@@ -1,15 +1,11 @@
 module Page.RegisterView exposing (..)
-import Browser
-import Html exposing (Html, button, div, text, h1, p)
-import Html.Events exposing (onClick)
-import Html.Attributes exposing (class)
+import Html exposing (..)
+import Html.Events exposing (..)
 import Html.Attributes exposing (..)
-import Html exposing (input, Attribute)
 import Types exposing (..)
-import Html.Events exposing (onInput)
 
-registerView : String -> Html Msg
-registerView errorMessage= 
+registerView :  Html Msg
+registerView = 
       div [class "login-wrapper"] [
       div [class "login-content"] [
       h1 [] [text "Register"],

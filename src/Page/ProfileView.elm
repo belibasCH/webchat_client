@@ -1,12 +1,7 @@
 module Page.ProfileView exposing (..)
-import Browser
 import Html exposing (..)
 import Html.Events exposing (..)
 import Html.Attributes exposing (..)
-import Html exposing (input, Attribute)
-import Html.Events exposing (onInput)
-import Html exposing (textarea)
-import Html.Events exposing (targetValue)
 import Maybe exposing (withDefault)
 import Types exposing (..)
 import Json.Decode as D
