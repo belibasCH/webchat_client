@@ -31,6 +31,21 @@ import Base64
 import Services.Rsa exposing (generatePrimes)
 import Tuple exposing (first)
 import Tuple exposing (second)
+import Services.Rsa exposing (calculatePublicKey)
+import Services.Rsa exposing (calculatePrivateKey)
+import Crypto.Strings.Types exposing (Passphrase)
+import Crypto.Strings.Types exposing (Ciphertext)
+import Services.CryptoStringAes exposing (doEncrypt)
+import Debug exposing (toString)
+import String exposing (split)
+import List exposing (filterMap)
+import Random exposing (Seed, initialSeed)
+import Services.CryptoStringAes exposing (doDecrypt)
+import Time exposing (posixToMillis, now)
+import Random exposing (step)
+import Random exposing (Generator)
+import Crypto.Strings.Types exposing (Plaintext)
+
 
 
 main : Program () Model Msg
@@ -54,8 +69,8 @@ update msg model =
   (_, SetAvatar a) -> ({model | user = {name = model.user.name, id = model.user.id, avatar = Just a}}, Cmd.none)
   (_, ValidatePassword p)-> (model, Cmd.none)
   (_, SubmitRegistration) -> ({model | page = LoginPage}, sendMessage (ToJson.encodeRegisterUser model.user model.password))
-  (_, SubmitLogin) -> ( model , sendMessage (ToJson.encodeLogin model.user model.password))
-  (_, Recv s) -> manageAnswers (returnTypeSave (D.decodeString decodeType s)) s model
+  (_, SubmitLogin) -> ( model , sendMessage (ToJson.encodeLogin model.user (encodeChatText model model.password)))
+  (_, Recv s) -> manageAnswers (returnTypeSave (D.decodeString decodeType s)) (decodeAesChipertext model s) model
   (_, SetPage p) -> changePage p model
   (_, ChangeUserName) -> (model, sendMessage (ToJson.encodeChangeUserName model.user.name))
   (_, ChangePassword) -> (model, sendMessage (ToJson.encodeChangePassword model.password))
@@ -69,7 +84,7 @@ update msg model =
     sendMessage (ToJson.encodeLoadChats)
     ]
     )
-  (_, SendChatMessage) -> ({model | currentText="", messages = ( model.messages  ++ [newMessage model] )}, sendMessage (ToJson.encodeSendMessage model.activeChatPartner.id model.currentText))
+  (_, SendChatMessage) -> ({model | currentText="", messages = ( model.messages  ++ [newMessage model] )}, sendMessage (ToJson.encodeSendMessage model.activeChatPartner.id (encodeChatText model model.currentText)))
   (_, ChatInput i) -> ({model | currentText=i}, Cmd.none)
   (_, SubmitReadMsg id) -> ({model | messages = List.map (\m -> if m.id == id then {m | read_at = Just "now"} else m) model.messages}, Cmd.batch [
     sendMessage (ToJson.encodeMarkAsRead id),
@@ -79,10 +94,74 @@ update msg model =
   (_, GotFile f) -> (model,  read f)
   (_, ImageLoaded s) -> ({model | user = {name = model.user.name, id = model.user.id, avatar = Just ( s)}}, 
    sendMessage (ToJson.encodeChangeAvatar s))
-  (_, GeneratePrimes) -> (model, generatePrimes) 
-  (_, PrimePQ n) -> ( {model | prime = { p = (first n), q = (second n)}}, Cmd.none)
+  (_, GenerateKeyPair) -> (model, generatePrimes) 
+  (_, PrimePQ n) -> generateKeyPair model n
+  (_, Tick newTime) -> ({model | time = newTime}, Cmd.none)
+
+
+
+generateKeyPair : Model -> (Int, Int) -> ( Model, Cmd Msg )
+generateKeyPair model n = 
+  let
+    pk = calculatePrivateKey 11 13-- TODO (first n)(second n)
+    sk = calculatePublicKey pk 11 13 --TODO (first n)(second n)
+  in
+    ({model | prime = { p = 11, q = 13}, privateKey = pk, publicKey = sk}, Cmd.none) -- TODO p = (first n), q = (second n)
+
+encodeChatText : Model -> Plaintext -> Ciphertext
+encodeChatText model plaintext= 
+  doEncrypt (Time.posixToMillis model.time) model.passphrase plaintext
+  
+
+decodeAesChipertext : Model -> Ciphertext -> Plaintext
+decodeAesChipertext model chipertext = 
+  case doDecrypt model.passphrase chipertext of
+    Ok plaintext -> plaintext
+    Err _ -> "Error"
+
+
+
+-- encrypt the RSA Private Key with AES
+encryptRsaPrivateKeyWithAes : Model -> PrivateKey -> Passphrase -> Ciphertext
+encryptRsaPrivateKeyWithAes m pk pw = doEncrypt (Time.posixToMillis m.time) pw (privateKeyToString pk)
+
+decryptRsaPrivateKeyWithAes : String -> Passphrase -> PrivateKey
+decryptRsaPrivateKeyWithAes chipertext pw = case doDecrypt pw chipertext of
+  Ok plaintext -> createPrivateKey (split "," plaintext)
+  Err _ -> createPrivateKey ["0","0","0","0"]
 
   
+privateKeyToString : PrivateKey -> String
+privateKeyToString pk = 
+  let
+    p = toString pk.p
+    q = toString pk.q
+    d = toString pk.d
+  in
+    p ++ "," ++ q ++ "," ++ d
+
+createPrivateKey : List String -> PrivateKey
+createPrivateKey str = 
+  let
+    valueList = filterMap String.toInt str
+
+    p = case List.head valueList of
+      Just x -> x
+      Nothing -> 0
+
+    q = case List.head (List.drop 1 valueList) of
+      Just x -> x
+      Nothing -> 0
+
+    phi = case List.head (List.drop 1 valueList) of
+      Just x -> x
+      Nothing -> 0
+
+    d = case List.head (List.drop 1 valueList) of
+      Just x -> x
+      Nothing -> 0
+  in
+    PrivateKey p q phi d
 
 read : File -> Cmd Msg
 read file =
@@ -135,7 +214,7 @@ changePage p model = case p of
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-  messageReceiver Recv
+  Sub.batch [messageReceiver Recv, Time.every 1000 Tick]
 
 view : Model -> Html Msg
 view m = case m.page of

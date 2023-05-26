@@ -1,5 +1,7 @@
 module Services.InitialData exposing (..)
 import Types exposing (..)
+import Time
+import Crypto.Strings.Types exposing (Passphrase)
 
 
 initialModel : (Model, Cmd Msg)
@@ -17,8 +19,10 @@ initialModel = ({
   revicedMessageFromServer = {msgType = "nothing"},
   prime = { p = 0, q = 0 }, 
   publicKey = {e = 0, n = 0},
-  privateKey = {p = 0, q = 0, phi = 0, d = 0} },
-  Cmd.none)
+  privateKey = {p = 0, q = 0, phi = 0, d = 0},
+  time = (Time.millisToPosix 0),
+  passphrase = ""
+  }, Cmd.none)
 
 exampleUserPreview : UserPreview
 exampleUserPreview = {user = initialUser, is_online = True}

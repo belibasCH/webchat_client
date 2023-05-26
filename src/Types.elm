@@ -7,6 +7,8 @@ import Html.Attributes exposing (id)
 import List exposing (filter)
 import File exposing (File)
 import Browser.Navigation exposing (Key)
+import Time
+
 
 type alias Model = {
   page : Page,
@@ -20,9 +22,11 @@ type alias Model = {
   errorMessage : String,
   chats : List ChatPreview,
   revicedMessageFromServer : Answertype,
-  prime : Prime,
+  prime : PrimePair,
   publicKey : PublicKey,
-  privateKey : PrivateKey
+  privateKey : PrivateKey,
+  time : Time.Posix,
+  passphrase : String
   }
 type Msg
   =   SubmitRegistration
@@ -46,7 +50,8 @@ type Msg
     |   GotFile File
     |   ImageLoaded String
     |   PrimePQ (Int, Int)
-    |   GeneratePrimes
+    |   GenerateKeyPair
+    |   Tick Time.Posix
   
 type alias ChatInfo = {
   currentText : String,
@@ -138,9 +143,11 @@ type alias UserLoggedOut = {
   id : String
   }
 
-type alias Prime = {
-  p : Int,
-  q : Int
+type alias Prime = Int
+
+type alias PrimePair = {
+  p : Prime,
+  q : Prime
   }
 
 type alias PublicKey = {
@@ -159,3 +166,5 @@ type alias KeyPair = {
   publicKey : PublicKey,
   privateKey : PrivateKey
   }
+
+type alias CryptedInt = Int 
