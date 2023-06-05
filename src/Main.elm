@@ -63,7 +63,7 @@ update msg model =
   (_, SetPassphrase p) -> ({model | passphrase = p}, Cmd.none)
   (_, SetAvatar a) -> ({model | user = {name = model.user.name, id = model.user.id, avatar = Just a}}, Cmd.none)
   (_, ValidatePassword p)-> (model, Cmd.none)
-  (_, SubmitRegistration) -> ({model | page = LoginPage}, sendMessage (ToJson.encodeRegisterUser model.user model.password))
+  (_, SubmitRegistration) -> ({model | page = LoginPage}, sendMessage (ToJson.encodeRegisterUser model.user model.password model.publicKey))
   (_, SubmitLogin) -> ( model , sendMessage (ToJson.encodeLogin model.user model.password))
   (_, Recv s) -> manageAnswers (returnTypeSave (D.decodeString decodeType s)) s model
   (_, SetPage p) -> changePage p model

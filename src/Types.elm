@@ -95,7 +95,8 @@ type alias Message = {
 type alias User = {
   name : String,
   id : String,
-  avatar : Maybe String
+  avatar : Maybe String,
+  public_key : PublicKey
   }
 
 type alias LoginSucceded = {

@@ -27,15 +27,13 @@ errorChatPreview = {
   }
 
 encodeRegisterUser : User -> String-> E.Value
-encodeRegisterUser u pw =
+encodeRegisterUser u pw public_key =
   E.object
     [ ("type", E.string "create_user")
     , ("username", E.string u.name)
     , ("password", E.string pw)
     , ("avatar", E.string (withDefault "" u.avatar))
     , ("public_key", E.string ( E.string public_key))
-    , ("private_key", E.string ( E.string private_key))
-    , ("message_key", E.string ( E.string private_key))
     ]
 
 encodeLogin : User -> String -> E.Value
