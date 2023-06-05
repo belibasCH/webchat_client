@@ -5,6 +5,8 @@ import Json.Decode exposing (Error)
 import Json.Decode exposing (decodeString)
 import Json.Decode as D
 import Maybe exposing (withDefault)
+import Services.ParserCrypt exposing (decodeStringMessage)
+import List exposing (map)
 exampleMessage : Message
 exampleMessage = {
   id = "ExID", 
@@ -31,6 +33,9 @@ encodeRegisterUser u pw =
     , ("username", E.string u.name)
     , ("password", E.string pw)
     , ("avatar", E.string (withDefault "" u.avatar))
+    , ("public_key", E.string ( E.string public_key))
+    , ("private_key", E.string ( E.string private_key))
+    , ("message_key", E.string ( E.string private_key))
     ]
 
 encodeLogin : User -> String -> E.Value

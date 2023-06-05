@@ -34,6 +34,7 @@ type Msg
     |   Recv String
     |   SetUsername String
     |   SetPassword String
+    |   SetPassphrase String
     |   ValidatePassword String
     |   SetPage Page
     |   ChangeUserName
@@ -50,6 +51,7 @@ type Msg
     |   GotFile File
     |   ImageLoaded String
     |   PrimePQ (Int, Int)
+    |   Passphrase (List Int)
     |   GenerateKeyPair
     |   Tick Time.Posix
   

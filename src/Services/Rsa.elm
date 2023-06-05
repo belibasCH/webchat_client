@@ -21,10 +21,18 @@ isPrime n =
 
 -- Define a generator for two prime numbers
 primeGenerator : Random.Generator Prime
-primeGenerator = Random.int 1 50 |> Random.andThen (\n -> if isPrime n then Random.constant n else primeGenerator)
+primeGenerator = Random.int 1 50000 |> Random.andThen (\n -> if isPrime n then Random.constant n else primeGenerator)
+
+-- Define a generator for a list of 20 prime numbers as string
+primeListGenerator : Random.Generator (List Int)
+primeListGenerator = Random.list 20 (int 1 50000)
 
 generatePrimes : Cmd Msg
 generatePrimes = Random.generate PrimePQ (Random.pair primeGenerator primeGenerator)
+
+-- Generate a passphrase with 20 prime numbers
+generatePassphrase : Cmd Msg
+generatePassphrase = Random.generate Passphrase (primeListGenerator)
 
 calculateN : Prime -> Prime -> Int
 calculateN p q = p * q
