@@ -58,12 +58,12 @@ port messageReceiver : (String -> msg) -> Sub msg
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case (model.page, msg) of
-  (_, SetUsername u) -> ({model | user = {name = u, id = model.user.id, avatar = model.user.avatar}}, Cmd.none)
-  (_, SetPassword p) -> ({model | user = {name = model.user.name, id = model.user.id, avatar = model.user.avatar}, password = p}, Cmd.none)
+  (_, SetUsername u) -> ({model | user = {name = u, id = model.user.id, avatar = model.user.avatar, public_key = model.user.public_key}}, Cmd.none)
+  (_, SetPassword p) -> ({model | user = {name = model.user.name, id = model.user.id, avatar = model.user.avatar, public_key = model.user.public_key}, password = p}, Cmd.none)
   (_, SetPassphrase p) -> ({model | passphrase = p}, Cmd.none)
-  (_, SetAvatar a) -> ({model | user = {name = model.user.name, id = model.user.id, avatar = Just a}}, Cmd.none)
+  (_, SetAvatar a) -> ({model | user = {name = model.user.name, id = model.user.id, avatar = Just a, public_key = model.user.public_key}}, Cmd.none)
   (_, ValidatePassword p)-> (model, Cmd.none)
-  (_, SubmitRegistration) -> ({model | page = LoginPage}, sendMessage (ToJson.encodeRegisterUser model.user model.password model.publicKey))
+  (_, SubmitRegistration) -> ({model | page = LoginPage}, sendMessage (ToJson.encodeRegisterUser model))
   (_, SubmitLogin) -> ( model , sendMessage (ToJson.encodeLogin model.user model.password))
   (_, Recv s) -> manageAnswers (returnTypeSave (D.decodeString decodeType s)) s model
   (_, SetPage p) -> changePage p model
@@ -87,7 +87,7 @@ update msg model =
     ])
   (_, Search s) -> ({model | filteredUsers = List.filter (\u -> String.contains s u.user.name) model.users}, Cmd.none)
   (_, GotFile f) -> (model,  read f)
-  (_, ImageLoaded s) -> ({model | user = {name = model.user.name, id = model.user.id, avatar = Just ( s)}}, 
+  (_, ImageLoaded s) -> ({model | user = {name = model.user.name, id = model.user.id, avatar = Just ( s), public_key = model.user.public_key}}, 
    sendMessage (ToJson.encodeChangeAvatar s))
   (_, GenerateKeyPair) -> (model, generatePrimes) 
   (_, PrimePQ n) -> generateKeyPair model n
@@ -108,7 +108,7 @@ generateKeyPair model n =
 
 encodeChatText : Model -> Plaintext -> Ciphertext
 encodeChatText model plaintext= 
-  doEncrypt (Time.posixToMillis model.time) model.passphrase plaintext
+  doEncrypt model.time model.passphrase plaintext
   
 
 decodeAesChipertext : Model -> Ciphertext -> Plaintext
@@ -167,7 +167,7 @@ changePage p model = case p of
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-  Sub.batch [messageReceiver Recv, Time.every 1000 Tick]
+  Sub.batch [messageReceiver Recv, Time.every 100000 Tick] --TODO change to 1000
 
 view : Model -> Html Msg
 view m = case m.page of

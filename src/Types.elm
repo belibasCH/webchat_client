@@ -8,6 +8,7 @@ import List exposing (filter)
 import File exposing (File)
 import Browser.Navigation exposing (Key)
 import Time
+import Crypto.Strings.Types exposing (Passphrase)
 
 
 type alias Model = {
@@ -101,7 +102,9 @@ type alias User = {
 
 type alias LoginSucceded = {
   msgType : String,
-  user : User
+  user : User,
+  privateKey : PrivateKey,
+  messageKey : Passphrase
   }
 type alias ChatsLoaded = {
   msgType : String,
@@ -147,7 +150,7 @@ type alias UserLoggedOut = {
   }
 
 type alias Prime = Int
-
+type alias Passphrase = String
 type alias PrimePair = {
   p : Prime,
   q : Prime

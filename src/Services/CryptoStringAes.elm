@@ -14,9 +14,9 @@ import Types exposing (Message)
 
 {-| In real code, you'd pass in a seed created from a time, not a time.
 -}
-doEncrypt : Int -> Passphrase -> Plaintext -> Ciphertext
+doEncrypt : Time.Posix -> Passphrase -> Plaintext -> Ciphertext
 doEncrypt time passphrase plaintext =
-    justEncrypt (Random.initialSeed time) passphrase plaintext
+    justEncrypt (Random.initialSeed (Time.posixToMillis time)) passphrase plaintext
 
 tryDecrypt : Passphrase -> Ciphertext -> Result String Plaintext
 tryDecrypt passphrase ciphertext =
@@ -30,7 +30,7 @@ doDecrypt passphrase ciphertext =
 
 -- encrypt the RSA Private Key with AES
 encryptRsaPrivateKeyWithAes : Model -> PrivateKey -> Passphrase -> Ciphertext
-encryptRsaPrivateKeyWithAes m pk pw = doEncrypt (Time.posixToMillis m.time) pw (privateKeyToString pk)
+encryptRsaPrivateKeyWithAes m pk pw = doEncrypt m.time pw (privateKeyToString pk)
 
 decryptRsaPrivateKeyWithAes : String -> Passphrase -> PrivateKey
 decryptRsaPrivateKeyWithAes chipertext pw = case tryDecrypt pw chipertext of
@@ -60,6 +60,22 @@ createPrivateKey str =
   in
     PrivateKey p q phi d
 
+cryptMessageAes : Model -> Message -> Message
+cryptMessageAes model plainMessage = 
+  let
+    id = doEncrypt model.time plainMessage.id model.passphrase
+    sender_id = doEncrypt model.time plainMessage.sender_id model.passphrase
+    receiver_id = doEncrypt model.time plainMessage.receiver_id model.passphrase
+    text = doEncrypt model.time plainMessage.text model.passphrase
+    send_at = doEncrypt model.time  plainMessage.sent_at model.passphrase
+    receive_at = case plainMessage.received_at of
+      Just x -> Just (doEncrypt model.time x model.passphrase)
+      Nothing -> Nothing
+    read_at = case plainMessage.read_at of
+      Just x -> Just (doEncrypt  model.time x model.passphrase)
+      Nothing -> Nothing
+  in
+  Message id sender_id receiver_id text send_at receive_at read_at
 
 decryptMessageAes : Model -> Message -> Message
 decryptMessageAes model cryptMessage = 
