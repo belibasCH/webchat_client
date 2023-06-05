@@ -39,6 +39,8 @@ import Time
 import Crypto.Strings.Types exposing (Passphrase)
 import Services.Rsa exposing (primeListGenerator)
 import Services.Rsa exposing (generatePassphrase)
+import Services.Rsa exposing (decryptMessageKey)
+import Services.Rsa exposing (encryptMessageKey)
 
 
 
@@ -80,7 +82,7 @@ update msg model =
     sendMessage (ToJson.encodeLoadChats)
     ]
     )
-  (_, SendChatMessage) -> ({model | currentText="", messages = ( model.messages  ++ [newMessage model] )}, sendMessage (ToJson.encodeSendMessage model.activeChatPartner.id (encodeChatText model model.currentText)))
+  (_, SendChatMessage) -> ({model | currentText="", messages = ( model.messages  ++ [newMessage model] )}, sendMessage (ToJson.encodeSendMessage model.activeChatPartner.id (encodeChatText model model.currentText) (encryptMessageKey model)))
   (_, ChatInput i) -> ({model | currentText=i}, Cmd.none)
   (_, SubmitReadMsg id) -> ({model | messages = List.map (\m -> if m.id == id then {m | read_at = Just "now"} else m) model.messages}, Cmd.batch [
     sendMessage (ToJson.encodeMarkAsRead id),
@@ -101,11 +103,11 @@ update msg model =
 generateKeyPair : Model -> (Int, Int) -> ( Model, Cmd Msg )
 generateKeyPair model n = 
   let
-    pk = calculatePrivateKey 11 13-- TODO (first n)(second n)
-    sk = calculatePublicKey pk 11 13 --TODO (first n)(second n)
+    sk = calculatePrivateKey 11 13-- TODO (first n)(second n)
+    pk = calculatePublicKey sk 11 13 --TODO (first n)(second n)
 
   in
-    ({model | prime = { p = 11, q = 13}, privateKey = pk, publicKey = sk}, generatePassphrase) -- TODO p = (first n), q = (second n)
+    ({model | prime = { p = 11, q = 13}, privateKey = sk, publicKey = pk}, generatePassphrase) -- TODO p = (first n), q = (second n)
 
 encodeChatText : Model -> Plaintext -> Ciphertext
 encodeChatText model plaintext= 

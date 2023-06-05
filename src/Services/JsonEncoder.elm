@@ -40,8 +40,8 @@ encodeRegisterUser m =
     , ("username", E.string m.user.name)
     , ("password", E.string ( sha256 m.password))
     , ("avatar", E.string (withDefault "" m.user.avatar))
-    , ("public_key", E.string (publicKeyToString m.user.public_key))
-    , ("private_key", E.string ( encryptRsaPrivateKeyWithAes m m.privateKey m.password))
+    , ("public_key", E.string (publicKeyToString m.publicKey))
+    , ("private_key", E.string (encryptRsaPrivateKeyWithAes m m.privateKey m.password))
     , ("message_key", E.string (doEncrypt m.time m.password m.passphrase))
     ] 
     
@@ -100,12 +100,13 @@ encodeMarkAsRead message_id =
     , ("message_id", E.string message_id)
     ]
 
-encodeSendMessage : String -> String -> E.Value
-encodeSendMessage receiver_id text =
+encodeSendMessage : String -> String -> Passphrase -> E.Value
+encodeSendMessage receiver_id text crypted_message_key =
   E.object
     [ ("type", E.string "send")
     , ("receiver_id", E.string receiver_id)
     , ("text", E.string text)
+    , ("message_key", E.string crypted_message_key)
     ]
 
 encodeChangeAvatar : String -> E.Value
@@ -138,7 +139,7 @@ returnUsers : Result Error UsersLoaded -> List UserPreview
 returnUsers r = case r of
   Ok ok -> ok.users
   Err e -> []
-
+  
 returnUser : Result Error LoginSucceded ->  User
 returnUser r = case r of
   Ok ok -> ok.user
@@ -239,10 +240,10 @@ decodeUser : D.Decoder User
 decodeUser = D.map4 User (D.field "name" D.string)  (D.field "id" D.string) (D.field "avatar" (D.nullable D.string)) (D.field "public_key" (D.map stringToPublicKey D.string))
 
 decodePrivateKey : D.Decoder PrivateKey
-decodePrivateKey = D.map stringToPrivateKey (D.field "private_key" D.string)
+decodePrivateKey = D.map stringToPrivateKey D.string
 
 decodeMessageKey : D.Decoder Passphrase
-decodeMessageKey = D.field "message_key" D.string
+decodeMessageKey = D.string
 
 returnSave : Result Error LoginSucceded -> LoginSucceded
 returnSave s = case s of

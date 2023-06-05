@@ -118,6 +118,7 @@ type alias UsersLoaded = {
   msgType : String,
   users : List UserPreview
   }
+
 type alias DateTime = String
 
 type alias Answertype = {

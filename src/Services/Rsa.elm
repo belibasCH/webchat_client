@@ -5,6 +5,10 @@ import Random exposing (..)
 import Types exposing (..)
 import Arithmetic exposing (gcd)
 import Arithmetic exposing (modularInverse)
+import Services.ParserCrypt exposing (messageToString)
+import Services.ParserCrypt exposing (passphraseToInt)
+import Parser exposing (run)
+import Parser exposing (int)
 
 type alias P = Prime
 type alias Q = Prime
@@ -25,7 +29,7 @@ primeGenerator = Random.int 1 50000 |> Random.andThen (\n -> if isPrime n then R
 
 -- Define a generator for a list of 20 prime numbers as string
 primeListGenerator : Random.Generator (List Int)
-primeListGenerator = Random.list 20 (int 1 50000)
+primeListGenerator = Random.list 20 (Random.int 0 9)
 
 generatePrimes : Cmd Msg
 generatePrimes = Random.generate PrimePQ (Random.pair primeGenerator primeGenerator)
@@ -81,19 +85,41 @@ calculatePrivateKey p q =
     PrivateKey p q phi d
 
 -- decrypt a message
-decrypt : Int -> KeyPair -> Int
-decrypt y keyPair = 
+decrypt : Int -> PrivateKey -> PublicKey -> Int
+decrypt y sk pk = 
     let
-        d = keyPair.privateKey.d
-        n = keyPair.publicKey.n
+        d = sk.d
+        n = pk.n
     in
     modBy (y ^ d) n
     
 -- encrypt a message
-encryptFunc : Int -> KeyPair -> Int
-encryptFunc x keyPair = 
+encryptFunc : Int -> PublicKey -> Int
+encryptFunc p pk = 
     let
-        e = keyPair.publicKey.e
-        n = keyPair.publicKey.n
+        e = pk.e
+        n = pk.n
     in
-    modBy (x ^ e) n
+    modBy (p ^ e) n
+
+-- encrypt a message_key for send with a Message
+encryptMessageKey : Model -> String
+encryptMessageKey model = 
+    let
+        messageKey = model.passphrase
+        publicKeyActiveChatPartner = model.activeChatPartner.public_key
+        encryptedMessageKey = String.fromInt (encryptFunc (passphraseToInt messageKey) publicKeyActiveChatPartner)
+
+    in
+     encryptedMessageKey
+
+decryptMessageKey : Model -> String -> String
+decryptMessageKey model encryptedMessageKey = 
+    let
+        privateKey = model.privateKey
+        publicKey = model.user.public_key
+        decryptedMessageKey = String.fromInt (decrypt (case run Parser.int encryptedMessageKey of
+            Ok x -> x
+            Err _ -> 0) privateKey publicKey)
+    in
+        decryptedMessageKey
