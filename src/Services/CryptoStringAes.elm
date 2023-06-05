@@ -28,6 +28,8 @@ doDecrypt passphrase ciphertext =
         Ok plaintext -> plaintext
         Err _ -> ""
 
+
+
 -- encrypt the RSA Private Key with AES
 encryptRsaPrivateKeyWithAes : Model -> PrivateKey -> Passphrase -> Ciphertext
 encryptRsaPrivateKeyWithAes m pk pw = doEncrypt m.time pw (privateKeyToString pk)

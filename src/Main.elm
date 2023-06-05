@@ -65,7 +65,7 @@ update msg model =
   (_, ValidatePassword p)-> (model, Cmd.none)
   (_, SubmitRegistration) -> ({model | page = LoginPage}, generatePrimes)
   --  (_, SubmitRegistration) -> ({model | page = LoginPage}, sendMessage (ToJson.encodeRegisterUser model))
-  (_, SubmitLogin) -> ( model , sendMessage (ToJson.encodeLogin model.user model.password))
+  (_, SubmitLogin) -> ( model , sendMessage (ToJson.encodeLogin model))
   (_, Recv s) -> manageAnswers (returnTypeSave (D.decodeString decodeType s)) s model
   (_, SetPage p) -> changePage p model
   (_, ChangeUserName) -> (model, sendMessage (ToJson.encodeChangeUserName model.user.name))
@@ -114,7 +114,6 @@ encodeChatText model plaintext=
 
 decodeAesChipertext : Model -> Ciphertext -> Plaintext
 decodeAesChipertext model chipertext = doDecrypt model.passphrase chipertext
-
 
 
 read : File -> Cmd Msg

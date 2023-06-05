@@ -12,6 +12,8 @@ import Services.ParserCrypt exposing (privateKeyToString)
 import Services.CryptoStringAes exposing (doDecrypt)
 import Services.CryptoStringAes exposing (encryptRsaPrivateKeyWithAes)
 import Services.CryptoStringAes exposing (doEncrypt)
+import Sha256 exposing (sha256)
+
 exampleMessage : Message
 exampleMessage = {
   id = "ExID", 
@@ -36,7 +38,7 @@ encodeRegisterUser m =
   E.object
     [ ("type", E.string "create_user")
     , ("username", E.string m.user.name)
-    , ("password", E.string (doDecrypt m.password m.password))
+    , ("password", E.string ( sha256 m.password))
     , ("avatar", E.string (withDefault "" m.user.avatar))
     , ("public_key", E.string (publicKeyToString m.user.public_key))
     , ("private_key", E.string ( encryptRsaPrivateKeyWithAes m m.privateKey m.password))
@@ -45,13 +47,12 @@ encodeRegisterUser m =
     
     
 
-encodeLogin : User -> String -> E.Value
-encodeLogin u pw=
+encodeLogin : Model -> E.Value
+encodeLogin m =
   E.object
     [ ("type", E.string "login")
-    , ("username", E.string u.name)
-    , ("password", E.string pw)
-    , ("public_key", E.string ( publicKeyToString u.public_key))
+    , ("username", E.string m.user.name)
+    , ("password", E.string (sha256 m.password))
     ]
 
 encodeLoadChats : E.Value
@@ -242,6 +243,7 @@ decodePrivateKey = D.map stringToPrivateKey (D.field "private_key" D.string)
 
 decodeMessageKey : D.Decoder Passphrase
 decodeMessageKey = D.field "message_key" D.string
+
 returnSave : Result Error LoginSucceded -> LoginSucceded
 returnSave s = case s of
   Ok ok -> ok
