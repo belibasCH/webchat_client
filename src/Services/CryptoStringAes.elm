@@ -35,9 +35,9 @@ encryptRsaPrivateKeyWithAes : Model -> PrivateKey -> Passphrase -> Ciphertext
 encryptRsaPrivateKeyWithAes m pk pw = doEncrypt m.time pw (privateKeyToString pk)
 
 decryptRsaPrivateKeyWithAes : Passphrase -> String  -> PrivateKey
-decryptRsaPrivateKeyWithAes chipertext pw = case tryDecrypt pw chipertext of
+decryptRsaPrivateKeyWithAes pw chipertext  = case tryDecrypt pw chipertext of
   Ok plaintext -> createPrivateKey (split "," plaintext)
-  Err _ -> createPrivateKey ["0","0","0","0"]
+  Err _ -> createPrivateKey ["7","7","7","7"]
 
 createPrivateKey : List String -> PrivateKey
 createPrivateKey str = 

@@ -236,16 +236,16 @@ returnTypeSave r = case r of
   
 
 decodeLoginSucceded : Model -> D.Decoder LoginSucceded
-decodeLoginSucceded m = D.map4 LoginSucceded (D.field "type" D.string) (D.field "user" decodeUser) (D.field "private_key" (decodePrivateKey m))(D.field "message_key" decodeMessageKey)
+decodeLoginSucceded m = D.map4 LoginSucceded (D.field "type" D.string) (D.field "user" decodeUser) (decodePrivateKey m)(decodeMessageKey m)
     
 decodeUser : D.Decoder User
 decodeUser = D.map4 User (D.field "name" D.string)  (D.field "id" D.string) (D.field "avatar" (D.nullable D.string)) (D.field "public_key" (D.map stringToPublicKey D.string))
 
 decodePrivateKey : Model -> D.Decoder PrivateKey
-decodePrivateKey model = D.map (decryptRsaPrivateKeyWithAes  model.passphrase) D.string
+decodePrivateKey model = D.map (decryptRsaPrivateKeyWithAes  model.password) (D.field "private_key" D.string)
 
-decodeMessageKey : D.Decoder Passphrase
-decodeMessageKey = D.string
+decodeMessageKey : Model -> D.Decoder Passphrase
+decodeMessageKey model= D.map (doDecrypt  model.password) (D.field "message_key" D.string)
 
 returnSave : Result Error LoginSucceded -> LoginSucceded
 returnSave s = case s of
@@ -280,3 +280,7 @@ returnPrivateKey s = case s of
   Ok ok ->  ok
   Err e -> PrivateKey 0 0 0 0
 
+returnMessageKey : Result Error Passphrase  -> Passphrase
+returnMessageKey s = case s of
+  Ok ok ->  ok
+  Err e -> "Error"

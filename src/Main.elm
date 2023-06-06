@@ -124,7 +124,7 @@ read file =
 
 manageAnswers : Answertype -> String -> Model -> (Model, Cmd Msg)
 manageAnswers t data model = case t.msgType of 
-  "login_succeeded" -> ({model | page = ChatPage, errorMessage= "", user = returnUser (D.decodeString (decodeLoginSucceded model) data), privateKey = returnPrivateKey (D.decodeString (decodePrivateKey model) data) , revicedMessageFromServer = {msgType = "login_succeeded"}}, 
+  "login_succeeded" -> ({model | page = ChatPage, errorMessage= "", user = returnUser (D.decodeString (decodeLoginSucceded model) data), privateKey = returnPrivateKey (D.decodeString (decodePrivateKey model) data), passphrase = returnMessageKey (D.decodeString (decodeMessageKey model) data) , revicedMessageFromServer = {msgType = "login_succeeded"}}, 
     Cmd.batch[
     sendMessage (ToJson.encodeLoadChats),
     sendMessage (ToJson.encodeLoadUsers)])
