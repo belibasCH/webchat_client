@@ -13,6 +13,8 @@ import Services.CryptoStringAes exposing (doDecrypt)
 import Services.CryptoStringAes exposing (encryptRsaPrivateKeyWithAes)
 import Services.CryptoStringAes exposing (doEncrypt)
 import Sha256 exposing (sha256)
+import Services.CryptoStringAes exposing (decryptMessageAes)
+import Services.CryptoStringAes exposing (decryptRsaPrivateKeyWithAes)
 
 exampleMessage : Message
 exampleMessage = {
@@ -233,14 +235,14 @@ returnTypeSave r = case r of
   Err e -> Answertype "Error"
   
 
-decodeLoginSucceded : D.Decoder LoginSucceded
-decodeLoginSucceded = D.map4 LoginSucceded (D.field "type" D.string) (D.field "user" decodeUser)(D.field "private_key" decodePrivateKey)(D.field "message_key" decodeMessageKey)
+decodeLoginSucceded : Model -> D.Decoder LoginSucceded
+decodeLoginSucceded m = D.map4 LoginSucceded (D.field "type" D.string) (D.field "user" decodeUser) (D.field "private_key" (decodePrivateKey m))(D.field "message_key" decodeMessageKey)
     
 decodeUser : D.Decoder User
 decodeUser = D.map4 User (D.field "name" D.string)  (D.field "id" D.string) (D.field "avatar" (D.nullable D.string)) (D.field "public_key" (D.map stringToPublicKey D.string))
 
-decodePrivateKey : D.Decoder PrivateKey
-decodePrivateKey = D.map stringToPrivateKey D.string
+decodePrivateKey : Model -> D.Decoder PrivateKey
+decodePrivateKey model = D.map (decryptRsaPrivateKeyWithAes  model.passphrase) D.string
 
 decodeMessageKey : D.Decoder Passphrase
 decodeMessageKey = D.string
@@ -272,4 +274,9 @@ returnMessageRead : Result Error ReadMessage -> String
 returnMessageRead s = case s of
   Ok ok -> ok.id
   Err e -> "Error"
+
+returnPrivateKey : Result Error PrivateKey  -> PrivateKey
+returnPrivateKey s = case s of
+  Ok ok ->  ok
+  Err e -> PrivateKey 0 0 0 0
 

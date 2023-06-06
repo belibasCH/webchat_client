@@ -34,7 +34,7 @@ doDecrypt passphrase ciphertext =
 encryptRsaPrivateKeyWithAes : Model -> PrivateKey -> Passphrase -> Ciphertext
 encryptRsaPrivateKeyWithAes m pk pw = doEncrypt m.time pw (privateKeyToString pk)
 
-decryptRsaPrivateKeyWithAes : String -> Passphrase -> PrivateKey
+decryptRsaPrivateKeyWithAes : Passphrase -> String  -> PrivateKey
 decryptRsaPrivateKeyWithAes chipertext pw = case tryDecrypt pw chipertext of
   Ok plaintext -> createPrivateKey (split "," plaintext)
   Err _ -> createPrivateKey ["0","0","0","0"]
