@@ -9,6 +9,7 @@ import Services.ParserCrypt exposing (messageToString)
 import Services.ParserCrypt exposing (passphraseToInt)
 import Parser exposing (run)
 import Parser exposing (int)
+import List exposing (concat)
 
 type alias P = Prime
 type alias Q = Prime
@@ -29,7 +30,7 @@ primeGenerator = Random.int 1 50000 |> Random.andThen (\n -> if isPrime n then R
 
 -- Define a generator for a list of 20 prime numbers as string
 primeListGenerator : Random.Generator (List Int)
-primeListGenerator = Random.list 20 (Random.int 0 9)
+primeListGenerator = Random.list 1 (Random.int 0 100)
 
 generatePrimes : Cmd Msg
 generatePrimes = Random.generate PrimePQ (Random.pair primeGenerator primeGenerator)
@@ -60,7 +61,7 @@ calculateD phi =
 calculateE : Int -> Int -> Int  
 calculateE d phi = 
     let
-        helper e dP = case (modBy (e * dP) phi) of
+        helper e dP = case (modBy phi (e * dP) ) of
             1 -> e
             _ -> if e > 10000 then -1 else helper (e + 1) d
     in
@@ -91,16 +92,17 @@ decrypt y sk pk =
         d = sk.d
         n = pk.n
     in
-    modBy (y ^ d) n
+    modBy  n (y ^ d)
     
--- encrypt a message
+-- encrypt an int with rsa
+
 encryptFunc : Int -> PublicKey -> Int
-encryptFunc p pk = 
+encryptFunc x pk = 
     let
         e = pk.e
         n = pk.n
     in
-    modBy (p ^ e) n
+    modBy n (x ^ e)
 
 -- encrypt a message_key for send with a Message
 encryptMessageKey : Model -> String
@@ -108,7 +110,7 @@ encryptMessageKey model =
     let
         messageKey = model.passphrase
         publicKeyActiveChatPartner = model.activeChatPartner.public_key
-        encryptedMessageKey = String.fromInt (encryptFunc (passphraseToInt messageKey) publicKeyActiveChatPartner)
+        encryptedMessageKey = String.fromInt (encryptFunc (passphraseToInt (String.replace "," "" messageKey)) publicKeyActiveChatPartner)
 
     in
      encryptedMessageKey
@@ -123,3 +125,8 @@ decryptMessageKey model encryptedMessageKey =
             Err _ -> 0) privateKey publicKey)
     in
         decryptedMessageKey
+
+test : String
+test = String.fromInt (decrypt (case (run Parser.int "4") of
+            Ok x -> x
+            Err _ -> 0) (PrivateKey 7 3 7 7) (PublicKey 6 7))

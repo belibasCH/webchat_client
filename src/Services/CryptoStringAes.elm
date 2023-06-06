@@ -11,6 +11,8 @@ import Services.ParserCrypt exposing (privateKeyToString)
 import String exposing (split)
 import List exposing (filterMap)
 import Types exposing (Message)
+import Services.Rsa exposing (decryptMessageKey)
+import Types exposing (ChatPreview)
 
 {-| In real code, you'd pass in a seed created from a time, not a time.
 -}
@@ -66,6 +68,7 @@ cryptMessageAes : Model -> Message -> Message
 cryptMessageAes model plainMessage = 
   let
     id = doEncrypt model.time plainMessage.id model.passphrase
+    key = decryptMessageKey model plainMessage.key
     sender_id = doEncrypt model.time plainMessage.sender_id model.passphrase
     receiver_id = doEncrypt model.time plainMessage.receiver_id model.passphrase
     text = doEncrypt model.time plainMessage.text model.passphrase
@@ -77,18 +80,34 @@ cryptMessageAes model plainMessage =
       Just x -> Just (doEncrypt  model.time x model.passphrase)
       Nothing -> Nothing
   in
-  Message id sender_id receiver_id text send_at receive_at read_at
+  Message id key sender_id receiver_id text send_at receive_at read_at
 
 decryptMessageAes : Model -> Message -> Message
 decryptMessageAes model cryptMessage = 
   let
     id = cryptMessage.id
+    key = decryptMessageKey model cryptMessage.key
     sender_id = cryptMessage.sender_id
     receiver_id = cryptMessage.receiver_id
-    text = doDecrypt model.passphrase cryptMessage.text
+    text = doDecrypt key cryptMessage.text
     send_at = cryptMessage.sent_at
     receive_at = cryptMessage.received_at 
     read_at =  cryptMessage.read_at 
   in
-  Message id sender_id receiver_id text send_at receive_at read_at
+  Message id key sender_id receiver_id text send_at receive_at read_at
 
+decryptChatPreviewAes : Model -> ChatPreview -> ChatPreview
+decryptChatPreviewAes model chatPreview = 
+  let
+    id = chatPreview.latest_message.id
+    key = decryptMessageKey model chatPreview.latest_message.key
+    sender_id = chatPreview.latest_message.sender_id
+    receiver_id = chatPreview.latest_message.receiver_id
+    text = doDecrypt model.passphrase chatPreview.latest_message.text
+    send_at = chatPreview.latest_message.sent_at
+    receive_at = chatPreview.latest_message.received_at 
+    read_at =  chatPreview.latest_message.read_at 
+  
+    encryptedMessage = Message id key sender_id receiver_id text send_at receive_at read_at
+  in
+    ChatPreview chatPreview.user encryptedMessage chatPreview.total_message_count chatPreview.unread_message_count

@@ -94,7 +94,7 @@ update msg model =
    sendMessage (ToJson.encodeChangeAvatar s))
   (_, GenerateKeyPair) -> (model, generatePrimes) 
   (_, PrimePQ n) -> generateKeyPair model n
-  (_, Passphrase p) -> ({model | passphrase = listToString p}, sendMessage (ToJson.encodeRegisterUser model))
+  (_, Passphrase p) -> ({model | passphrase = listToString p}, sendMessage (ToJson.encodeRegisterUser {model | passphrase = listToString p}))
   (_, Tick newTime) -> ({model | time = newTime}, Cmd.none)
   
 
@@ -103,11 +103,11 @@ update msg model =
 generateKeyPair : Model -> (Int, Int) -> ( Model, Cmd Msg )
 generateKeyPair model n = 
   let
-    sk = calculatePrivateKey 11 13-- TODO (first n)(second n)
-    pk = calculatePublicKey sk 11 13 --TODO (first n)(second n)
+    sk = calculatePrivateKey 19 13-- TODO (first n)(second n)
+    pk = calculatePublicKey sk 61 83 --TODO (first n)(second n)
 
   in
-    ({model | prime = { p = 11, q = 13}, privateKey = sk, publicKey = pk}, generatePassphrase) -- TODO p = (first n), q = (second n)
+    ({model | prime = { p = 19, q = 13}, privateKey = sk, publicKey = pk}, generatePassphrase) -- TODO p = (first n), q = (second n)
 
 encodeChatText : Model -> Plaintext -> Ciphertext
 encodeChatText model plaintext= 
@@ -129,7 +129,7 @@ manageAnswers t data model = case t.msgType of
     sendMessage (ToJson.encodeLoadChats),
     sendMessage (ToJson.encodeLoadUsers)])
   "chats_loaded" -> ({model | 
-      chats = returnChats (D.decodeString decodeChatsLoaded data), 
+      chats = List.map (decryptChatPreviewAes model) (returnChats (D.decodeString decodeChatsLoaded data)), 
       revicedMessageFromServer = {msgType = "chats_loaded"}
     }, Cmd.none)
   "users_loaded" -> ({model | users = returnUsers (D.decodeString decodeUsersLoaded data), filteredUsers = returnUsers(D.decodeString decodeUsersLoaded data), revicedMessageFromServer = {msgType = "users_loaded"}}, Cmd.none)

@@ -19,6 +19,7 @@ import Services.CryptoStringAes exposing (decryptRsaPrivateKeyWithAes)
 exampleMessage : Message
 exampleMessage = {
   id = "ExID", 
+  key = "ExKey",
   sender_id = "ExSenID",
   receiver_id = "ExRecID",
   text = "Expample Text",
@@ -108,7 +109,7 @@ encodeSendMessage receiver_id text crypted_message_key =
     [ ("type", E.string "send")
     , ("receiver_id", E.string receiver_id)
     , ("text", E.string text)
-    , ("message_key", E.string crypted_message_key)
+    , ("key", E.string crypted_message_key)
     ]
 
 encodeChangeAvatar : String -> E.Value
@@ -217,8 +218,9 @@ decodeChatPreview = D.map4 ChatPreview
   (D.field "unread_message_count" D.int)
 
 decodeMessage : D.Decoder Message
-decodeMessage = D.map7 Message 
+decodeMessage = D.map8 Message 
   (D.field "id" D.string) 
+  (D.field "key" D.string)
   (D.field "sender_id" D.string) 
   (D.field "receiver_id" D.string) 
   (D.field "text" D.string) 

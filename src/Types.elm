@@ -86,6 +86,7 @@ type alias Chat = {
   }
 type alias Message = {
   id : String,
+  key : String,
   sender_id : String,
   receiver_id : String,
   text : String,
