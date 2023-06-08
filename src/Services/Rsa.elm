@@ -28,7 +28,7 @@ primeGenerator = Random.pair (Random.int 50 500) (Random.int 50 500) |> Random.a
 
 -- Define a generator for a list of 20 prime numbers as string
 primeListGenerator : Random.Generator (List Int)
-primeListGenerator = Random.list 5 (Random.int 1 100)
+primeListGenerator = Random.list 1 (Random.int 1 100)
 
 generatePrimes : Cmd Msg
 generatePrimes = Random.generate PrimePQ primeGenerator
