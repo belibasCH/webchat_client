@@ -105,12 +105,12 @@ update msg model =
 generateKeyPair : Model -> (Int, Int) -> ( Model, Cmd Msg )
 generateKeyPair model n = 
   let
-    sk = calculatePrivateKey (first n)(second n)-- TODO (first n)(second n)
-    pk = calculatePublicKey sk (first n)(second n) --TODO (first n)(second n)
+    sk = calculatePrivateKey (first n)(second n)
+    pk = calculatePublicKey sk (first n)(second n)
 
 
   in
-    ({model | privateKey = sk, tmpPublicKey = pk}, generatePassphrase) -- TODO p = (first n), q = (second n)
+    ({model | privateKey = sk, tmpPublicKey = pk}, generatePassphrase)
 
 encodeChatText : Model -> Plaintext -> Ciphertext
 encodeChatText model plaintext= 
@@ -171,7 +171,7 @@ changePage p model = case p of
 -- generate every second a tick from the time for salt the aes encryption
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-  Sub.batch [messageReceiver Recv, Time.every 10 Tick]
+  Sub.batch [messageReceiver Recv, Time.every 1000 Tick]
 
 view : Model -> Html Msg
 view m = case m.page of
