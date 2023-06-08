@@ -64,7 +64,7 @@ update msg model =
   case (model.page, msg) of
   (_, SetUsername u) -> ({model | user = {name = u, id = model.user.id, avatar = model.user.avatar, public_key = model.user.public_key}}, Cmd.none)
   (_, SetPassword p) -> ({model | user = {name = model.user.name, id = model.user.id, avatar = model.user.avatar, public_key = model.user.public_key}, password = p}, Cmd.none)
-  (_, SetPassphrase p) -> ({model | passphrase = p}, Cmd.none)
+  (_, SetPassphrase p) -> ({model | messageKey = p}, Cmd.none)
   (_, SetAvatar a) -> ({model | user = {name = model.user.name, id = model.user.id, avatar = Just a, public_key = model.user.public_key}}, Cmd.none)
   (_, ValidatePassword p)-> (model, Cmd.none)
   (_, SubmitRegistration) -> ({model | page = LoginPage}, generatePrimes)
@@ -96,7 +96,7 @@ update msg model =
    sendMessage (ToJson.encodeChangeAvatar s))
   (_, GenerateKeyPair) -> (model, generatePrimes) 
   (_, PrimePQ n) -> generateKeyPair model n
-  (_, Passphrase p) -> ({model | passphrase = listToString p}, sendMessage (ToJson.encodeRegisterUser {model | passphrase = listToString p}))
+  (_, Passphrase p) -> ({model | messageKey = listToString p}, sendMessage (ToJson.encodeRegisterUser {model | messageKey = listToString p}))
   (_, Tick newTime) -> ({model | time = newTime}, Cmd.none)
   
 
@@ -110,15 +110,15 @@ generateKeyPair model n =
 
 
   in
-    ({model | prime = {p = (first n), q = (second n)}, privateKey = sk, publicKey = pk}, generatePassphrase) -- TODO p = (first n), q = (second n)
+    ({model | privateKey = sk, tmpPublicKey = pk}, generatePassphrase) -- TODO p = (first n), q = (second n)
 
 encodeChatText : Model -> Plaintext -> Ciphertext
 encodeChatText model plaintext= 
-  doEncrypt model.time model.passphrase plaintext
+  doEncrypt model.time model.messageKey plaintext
   
 
 decodeAesChipertext : Model -> Ciphertext -> Plaintext
-decodeAesChipertext model chipertext = doDecrypt model.passphrase chipertext
+decodeAesChipertext model chipertext = doDecrypt model.messageKey chipertext
 
 
 read : File -> Cmd Msg
@@ -127,33 +127,32 @@ read file =
 
 manageAnswers : Answertype -> String -> Model -> (Model, Cmd Msg)
 manageAnswers t data model = case t.msgType of 
-  "login_succeeded" -> ({model | page = ChatPage, errorMessage= "", user = returnUser (D.decodeString (decodeLoginSucceded model) data), privateKey = returnPrivateKey (D.decodeString (decodePrivateKey model) data), passphrase = returnMessageKey (D.decodeString (decodeMessageKey model) data) , revicedMessageFromServer = {msgType = "login_succeeded"}}, 
+  "login_succeeded" -> ({model | page = ChatPage, errorMessage= "", user = returnUser (D.decodeString (decodeLoginSucceded model) data), privateKey = returnPrivateKey (D.decodeString (decodePrivateKey model) data), messageKey = returnMessageKey (D.decodeString (decodeMessageKey model) data) , receivedMessageFromServer = {msgType = "login_succeeded"}},
     Cmd.batch[
     sendMessage (ToJson.encodeLoadChats),
     sendMessage (ToJson.encodeLoadUsers)])
   "chats_loaded" -> ({model | 
       chats = List.map (decryptChatPreviewAes model) (returnChats (D.decodeString decodeChatsLoaded data)), 
-      revicedMessageFromServer = {msgType = "chats_loaded"}
+      receivedMessageFromServer = {msgType = "chats_loaded"}
     }, Cmd.none)
-  "users_loaded" -> ({model | users = returnUsers (D.decodeString decodeUsersLoaded data), filteredUsers = returnUsers(D.decodeString decodeUsersLoaded data), revicedMessageFromServer = {msgType = "users_loaded"}}, Cmd.none)
+  "users_loaded" -> ({model | users = returnUsers (D.decodeString decodeUsersLoaded data), filteredUsers = returnUsers(D.decodeString decodeUsersLoaded data), receivedMessageFromServer = {msgType = "users_loaded"}}, Cmd.none)
   "chat_loaded" -> ({model | 
       page = ChatPage, 
       messages =  List.map (decryptMessageAes model) (returnLoadMessages (D.decodeString decodeMessageLoaded data)),
-      revicedMessageFromServer = {msgType = "chat_loaded"}}, 
+      receivedMessageFromServer = {msgType = "chat_loaded"}},
       Cmd.none)
   "error" -> ({model | password = "", errorMessage = returnError (D.decodeString decodeError data)}, Cmd.none)
   "receive_message" -> ({model | 
-      revicedMessageFromServer = {msgType = "receive_message"}}, Cmd.batch[
+      receivedMessageFromServer = {msgType = "receive_message"}}, Cmd.batch[
       sendMessage (ToJson.encodeLoadMessages model.activeChatPartner.id),
       sendMessage (ToJson.encodeLoadChats),
-      --produces an erro
       sendMessage (ToJson.encodeRecievedMessage (returnReceiveMessage (D.decodeString decodeReceiveMessage data)))
       ])--Cmd.none)
   "user_created" -> ({model | users = returnUserCreated (D.decodeString decodeUserCreated data) :: model.users }, Cmd.none)
   "user_logged_in" -> ({model |users = 
-    List.map (\ a -> if a.user.id == (returnUserLoggedIn (D.decodeString decodeUserLoggedIn data)) then {a | is_online = True} else a) model.users, revicedMessageFromServer = {msgType = "user_logged_in"}}, Cmd.none)
+    List.map (\ a -> if a.user.id == (returnUserLoggedIn (D.decodeString decodeUserLoggedIn data)) then {a | is_online = True} else a) model.users, receivedMessageFromServer = {msgType = "user_logged_in"}}, Cmd.none)
   "user_logged_out" -> ({model |users = 
-    List.map (\ a -> if a.user.id == (returnUserLoggedOut (D.decodeString decodeUserLoggedOut data)) then {a | is_online = False} else a) model.users, revicedMessageFromServer = {msgType = "user_logged_out"}}, Cmd.none)
+    List.map (\ a -> if a.user.id == (returnUserLoggedOut (D.decodeString decodeUserLoggedOut data)) then {a | is_online = False} else a) model.users, receivedMessageFromServer = {msgType = "user_logged_out"}}, Cmd.none)
   "message_read" -> ({model | 
       messages = 
         List.map (\ a -> if a.id == (returnMessageRead (D.decodeString decodeMessageRead data)) then {a | read_at = Just "now"} else a) model.messages}, Cmd.batch[
@@ -169,10 +168,10 @@ changePage p model = case p of
   RegisterPage -> ({model | page = p}, Cmd.none)
   ProfilePage -> ({model | page = p}, Cmd.none)
 
-
+-- generate every second a tick from the time for salt the aes encryption
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-  Sub.batch [messageReceiver Recv, Time.every 100000 Tick] --TODO change to 1000
+  Sub.batch [messageReceiver Recv, Time.every 10 Tick]
 
 view : Model -> Html Msg
 view m = case m.page of
@@ -209,7 +208,7 @@ withLoginContainer model content =
     content
     ],
     div [id "bubble1"] [],
-    div [ class "server-message "] [text model.revicedMessageFromServer.msgType],
+    div [ class "server-message "] [text model.receivedMessageFromServer.msgType],
     withErrorMessage model.errorMessage
   ]
 
@@ -219,7 +218,7 @@ withContainer model content =
   navigation model.page,
   content,
   secureSign,
-  div [ class "server-message "] [text model.revicedMessageFromServer.msgType],
+  div [ class "server-message "] [text model.receivedMessageFromServer.msgType],
   withErrorMessage model.errorMessage
  ]
 

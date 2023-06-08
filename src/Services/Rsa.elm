@@ -21,23 +21,14 @@ import Arithmetic exposing (powerMod)
 type alias P = Prime
 type alias Q = Prime
 
-
--- Define a function to check if a number is prime
-isPrime : Int -> Bool
-isPrime n = 
-    let
-        helper d =
-            d * d > n || modBy d n /= 0 && helper (d + 1)
-    in
-    n > 1 && helper 2
-
 -- Define a generator for two prime numbers
+-- the two primes need to be different
 primeGenerator : Random.Generator (Prime, Prime)
-primeGenerator = Random.pair (Random.int 50 5000) (Random.int 60 4000) |> Random.andThen (\n -> if isPrime (Tuple.first n) && isPrime (Tuple.second n) &&  (Tuple.first n) /= (Tuple.second n) then Random.constant n else primeGenerator)
+primeGenerator = Random.pair (Random.int 50 500) (Random.int 50 500) |> Random.andThen (\n -> if isPrime (Tuple.first n) && isPrime (Tuple.second n) &&  (Tuple.first n) /= (Tuple.second n) then Random.constant n else primeGenerator)
 
 -- Define a generator for a list of 20 prime numbers as string
 primeListGenerator : Random.Generator (List Int)
-primeListGenerator = Random.list 1 (Random.int 1 100)
+primeListGenerator = Random.list 5 (Random.int 1 100)
 
 generatePrimes : Cmd Msg
 generatePrimes = Random.generate PrimePQ primeGenerator
@@ -46,35 +37,30 @@ generatePrimes = Random.generate PrimePQ primeGenerator
 generatePassphrase : Cmd Msg
 generatePassphrase = Random.generate Passphrase (primeListGenerator)
 
+-- calculate n for the public key
 calculateN : Prime -> Prime -> Int
 calculateN p q = p * q
 
+-- Calculate phi for the private key
 calculatePhi : Prime -> Prime -> Int
 calculatePhi p q = (p - 1) * (q - 1)
 
 -- Calculate a d that is an element from Z* phi and is multiplicative inverse of (e modulo phi)
+-- The "17" is a random number, that is used to pick the 17th prime number from the list of primes below n
+-- There a always more than 17 prime numbers below n, so this should work
 calculateD : Int -> Int
 calculateD n = case primesBelow n |> List.filter (\x -> isCoprimeTo x n) |> List.reverse  |> List.drop 17 |> List.head of
     Just x -> x
     Nothing -> 0
-  --  let
-        --helper d =
-    --        if isCoprimeTo d n then d else helper (d - 1) -- statt 7 kommt d rein
---in
-    -- if n < 12 then (helper (round (toFloat n - 1))) else (helper (round (toFloat n / 2)))
-    --helper (round (toFloat n - 1))
-
 
 -- calculate ´e´ that is an element from Z* phi and is multiplicative inverse of (d modulo phi)
--- TODO Ich bekomme e nicht berechnet, da ein zufälliges d gewählt wird und es dafür keine inverse gibt!!!
-
-calculateE : Int -> Int -> Int  
---calculateE d phi = first (extendedGcd d phi)
+-- this is part of the public key
+calculateE : Int -> Int -> Int
 calculateE d phi = case modularInverse d phi of
     Just x -> x
     Nothing -> 0
 
--- calculate a public key
+-- produce a public key from a private key
 calculatePublicKey : PrivateKey -> Prime -> Prime -> PublicKey
 calculatePublicKey sk p q  = 
     let
@@ -93,33 +79,33 @@ calculatePrivateKey p q =
     in
     PrivateKey p q phi d
 
--- decrypt a message
-decrypt : Int -> PrivateKey -> PublicKey -> Int
-decrypt y sk pk = 
+-- decrypt the message_key that is encrypted with the private key of the user
+decryptWithRsaModus : Int -> PrivateKey -> PublicKey -> Int
+decryptWithRsaModus y sk pk =
     let
         d = sk.d
         n = pk.n
     in
     powerMod y d n
     
--- encrypt an int with rsa
-
-encryptFunc : Int -> PublicKey -> Int
-encryptFunc x pk = 
+-- encrypt the message_key that is encrypted with the public key of the active chat partner
+-- so only the active chat partner can decrypt the message_key and decrypt the message
+encryptWithRsaModus : Int -> PublicKey -> Int
+encryptWithRsaModus x pk =
     let
         e = pk.e
         n = pk.n
     in
     powerMod x e n
 
--- encrypt a message_key for send with a Message
+-- encrypt a message_key with the public_key from the active chat partner
+-- so it can be sent to the active chat partner withing the message
 encryptMessageKey : Model -> String
 encryptMessageKey model = 
     let
-        messageKey = model.passphrase
+        messageKey = model.messageKey
         publicKeyActiveChatPartner = model.activeChatPartner.public_key
-        encryptedMessageKey = String.fromInt (encryptFunc (passphraseToInt (String.replace "," "" messageKey)) publicKeyActiveChatPartner)
-
+        encryptedMessageKey = String.fromInt (encryptWithRsaModus (passphraseToInt (String.replace "," "" messageKey)) publicKeyActiveChatPartner)
     in
      encryptedMessageKey
 
@@ -128,13 +114,8 @@ decryptMessageKey model encryptedMessageKey =
     let
         privateKey = model.privateKey
         publicKey = model.user.public_key
-        decryptedMessageKey = String.fromInt (decrypt (case run Parser.int encryptedMessageKey of
+        decryptedMessageKey = String.fromInt (decryptWithRsaModus (case run Parser.int encryptedMessageKey of
             Ok x -> x
             Err _ -> 0) privateKey publicKey)
     in
-        decryptedMessageKey
-
-test : String
-test = String.fromInt (decrypt (case (run Parser.int "4") of
-            Ok x -> x
-            Err _ -> 0) (PrivateKey 7 3 7 7) (PublicKey 6 7))
+    decryptedMessageKey

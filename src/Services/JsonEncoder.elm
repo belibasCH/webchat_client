@@ -8,13 +8,13 @@ import Maybe exposing (withDefault)
 import Services.ParserCrypt exposing (decodeStringMessage, publicKeyToString, stringToPrivateKey)
 import List exposing (map)
 import Services.ParserCrypt exposing (stringToPublicKey)
-import Services.ParserCrypt exposing (privateKeyToString)
+import Services.ParserCrypt exposing (convertPrivateKeyToString)
 import Services.CryptoStringAes exposing (doDecrypt)
-import Services.CryptoStringAes exposing (encryptRsaPrivateKeyWithAes)
+import Services.CryptoStringAes exposing (encryptPrivateKeyWithAes)
 import Services.CryptoStringAes exposing (doEncrypt)
 import Sha256 exposing (sha256)
 import Services.CryptoStringAes exposing (decryptMessageAes)
-import Services.CryptoStringAes exposing (decryptRsaPrivateKeyWithAes)
+import Services.CryptoStringAes exposing (decryptPrivateKeyWithAes)
 
 exampleMessage : Message
 exampleMessage = {
@@ -43,9 +43,9 @@ encodeRegisterUser m =
     , ("username", E.string m.user.name)
     , ("password", E.string ( sha256 m.password))
     , ("avatar", E.string (withDefault "" m.user.avatar))
-    , ("public_key", E.string (publicKeyToString m.publicKey))
-    , ("private_key", E.string (encryptRsaPrivateKeyWithAes m m.privateKey m.password))
-    , ("message_key", E.string (doEncrypt m.time m.password m.passphrase))
+    , ("public_key", E.string (publicKeyToString m.tmpPublicKey))
+    , ("private_key", E.string (encryptPrivateKeyWithAes m m.privateKey m.password))
+    , ("message_key", E.string (doEncrypt m.time m.password m.messageKey))
     ] 
     
     
@@ -103,7 +103,7 @@ encodeMarkAsRead message_id =
     , ("message_id", E.string message_id)
     ]
 
-encodeSendMessage : String -> String -> Passphrase -> E.Value
+encodeSendMessage : String -> String -> Message_Key -> E.Value
 encodeSendMessage receiver_id text crypted_message_key =
   E.object
     [ ("type", E.string "send")
@@ -244,9 +244,9 @@ decodeUser : D.Decoder User
 decodeUser = D.map4 User (D.field "name" D.string)  (D.field "id" D.string) (D.field "avatar" (D.nullable D.string)) (D.field "public_key" (D.map stringToPublicKey D.string))
 
 decodePrivateKey : Model -> D.Decoder PrivateKey
-decodePrivateKey model = D.map (decryptRsaPrivateKeyWithAes  model.password) (D.field "private_key" D.string)
+decodePrivateKey model = D.map (decryptPrivateKeyWithAes  model.password) (D.field "private_key" D.string)
 
-decodeMessageKey : Model -> D.Decoder Passphrase
+decodeMessageKey : Model -> D.Decoder Message_Key
 decodeMessageKey model= D.map (doDecrypt  model.password) (D.field "message_key" D.string)
 
 returnSave : Result Error LoginSucceded -> LoginSucceded
@@ -282,7 +282,7 @@ returnPrivateKey s = case s of
   Ok ok ->  ok
   Err e -> PrivateKey 0 0 0 0
 
-returnMessageKey : Result Error Passphrase  -> Passphrase
+returnMessageKey : Result Error Message_Key  -> Message_Key
 returnMessageKey s = case s of
   Ok ok ->  ok
   Err e -> "Error"

@@ -21,12 +21,12 @@ type alias Model = {
   currentText : String,
   errorMessage : String,
   chats : List ChatPreview,
-  revicedMessageFromServer : Answertype,
+  receivedMessageFromServer : Answertype,
   prime : PrimePair,
-  publicKey : PublicKey,
+  tmpPublicKey : PublicKey, -- when user was created, this public will encrypted an send to server. After Login the public key will be in the User object
   privateKey : PrivateKey,
   time : Time.Posix,
-  passphrase : String
+  messageKey : String
   }
 type Msg
   =   SubmitRegistration
@@ -104,7 +104,7 @@ type alias LoginSucceded = {
   msgType : String,
   user : User,
   privateKey : PrivateKey,
-  messageKey : Passphrase
+  messageKey : Message_Key
   }
 type alias ChatsLoaded = {
   msgType : String,
@@ -151,7 +151,7 @@ type alias UserLoggedOut = {
   }
 
 type alias Prime = Int
-type alias Passphrase = String
+type alias Message_Key = String
 type alias PrimePair = {
   p : Prime,
   q : Prime
@@ -168,10 +168,3 @@ type alias PrivateKey = {
   phi : Int,
   d : Int
   }
-
-type alias KeyPair = {
-  publicKey : PublicKey,
-  privateKey : PrivateKey
-  }
-
-type alias CryptedInt = Int 

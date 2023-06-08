@@ -7,89 +7,59 @@ import Random exposing (initialSeed)
 import Types exposing (Model)
 import Types exposing (PrivateKey)
 import Time
-import Services.ParserCrypt exposing (privateKeyToString)
+import Services.ParserCrypt exposing (convertPrivateKeyToString, convertStringToPrivateKey)
 import String exposing (split)
 import List exposing (filterMap)
 import Types exposing (Message)
 import Services.Rsa exposing (decryptMessageKey)
 import Types exposing (ChatPreview)
 
-{-| In real code, you'd pass in a seed created from a time, not a time.
--}
+-- this is the main encrypt function. It encrypts the plaintext with the passphrase and a timestamp. So the ciphertext is always different
 doEncrypt : Time.Posix -> Passphrase -> Plaintext -> Ciphertext
 doEncrypt time passphrase plaintext =
     justEncrypt (Random.initialSeed (Time.posixToMillis time)) passphrase plaintext
 
-tryDecrypt : Passphrase -> Ciphertext -> Result String Plaintext
-tryDecrypt passphrase ciphertext =
-    decrypt passphrase ciphertext
-
+-- this is the main decrypt function. It decrypts the ciphertext with the passphrase with aes
 doDecrypt : Passphrase -> Ciphertext -> Plaintext
-doDecrypt passphrase ciphertext =
-    case tryDecrypt passphrase ciphertext of
-        Ok plaintext -> plaintext
-        Err _ -> ""
+doDecrypt passphrase ciphertext = case decrypt passphrase ciphertext of
+    Ok plaintext -> plaintext
+    Err _ -> "Error decrypting"
 
+-- encrypt the RSA Private Key with AES for Store it on the Server
+encryptPrivateKeyWithAes : Model -> PrivateKey -> Passphrase -> Ciphertext
+encryptPrivateKeyWithAes m sk pw = doEncrypt m.time pw (convertPrivateKeyToString sk)
 
+-- decrypt the RSA Private Key with AES that is taken from the Server
+decryptPrivateKeyWithAes : Passphrase -> String  -> PrivateKey
+decryptPrivateKeyWithAes pw chipertext  = convertStringToPrivateKey (split "," (doDecrypt pw chipertext))
 
--- encrypt the RSA Private Key with AES
-encryptRsaPrivateKeyWithAes : Model -> PrivateKey -> Passphrase -> Ciphertext
-encryptRsaPrivateKeyWithAes m sk pw = doEncrypt m.time pw (privateKeyToString sk)
-
-
-decryptRsaPrivateKeyWithAes : Passphrase -> String  -> PrivateKey
-decryptRsaPrivateKeyWithAes pw chipertext  = case tryDecrypt pw chipertext of
-  Ok plaintext -> createPrivateKey (split "," plaintext)
-  Err _ -> createPrivateKey ["7","7","7","7"]
-
-createPrivateKey : List String -> PrivateKey
-createPrivateKey str = 
-  let
-    valueList = filterMap String.toInt str
-
-    p = case List.head valueList of
-      Just x -> x
-      Nothing -> 0
-
-    q = case List.head (List.drop 1 valueList) of
-      Just x -> x
-      Nothing -> 0
-
-    phi = case List.head (List.drop 2 valueList) of
-      Just x -> x
-      Nothing -> 0
-
-    d = case List.head (List.drop 3 valueList) of
-      Just x -> x
-      Nothing -> 0
-  in
-    PrivateKey p q phi d
-
+-- encrypt the message_key with RSA and encrypt the text with AES to send it to the Server
 cryptMessageAes : Model -> Message -> Message
 cryptMessageAes model plainMessage = 
   let
-    id = doEncrypt model.time plainMessage.id model.passphrase
+    id = doEncrypt model.time plainMessage.id model.messageKey
     key = decryptMessageKey model plainMessage.key
-    sender_id = doEncrypt model.time plainMessage.sender_id model.passphrase
-    receiver_id = doEncrypt model.time plainMessage.receiver_id model.passphrase
-    text = doEncrypt model.time plainMessage.text model.passphrase
-    send_at = doEncrypt model.time  plainMessage.sent_at model.passphrase
+    sender_id = doEncrypt model.time plainMessage.sender_id model.messageKey
+    receiver_id = doEncrypt model.time plainMessage.receiver_id model.messageKey
+    text = doEncrypt model.time plainMessage.text model.messageKey
+    send_at = doEncrypt model.time  plainMessage.sent_at model.messageKey
     receive_at = case plainMessage.received_at of
-      Just x -> Just (doEncrypt model.time x model.passphrase)
+      Just x -> Just (doEncrypt model.time x model.messageKey)
       Nothing -> Nothing
     read_at = case plainMessage.read_at of
-      Just x -> Just (doEncrypt  model.time x model.passphrase)
+      Just x -> Just (doEncrypt  model.time x model.messageKey)
       Nothing -> Nothing
   in
   Message id key sender_id receiver_id text send_at receive_at read_at
 
+-- decrypt the message_key with RSA and decrypt the text with AES to show it to the User
+-- If this is a own message, the key is the own passphrase.
+-- If this is a message from another user, the key have to be encrypted with the own private key
 decryptMessageAes : Model -> Message -> Message
 decryptMessageAes model cryptMessage = 
   let
     id = cryptMessage.id
-    -- If this is a own message, the key is the own passphrase. 
-    -- If this is a message from another user, the key have to be encrypted with the own private key
-    key = if sender_id /= model.user.id then decryptMessageKey model cryptMessage.key else model.passphrase
+    key = if sender_id /= model.user.id then decryptMessageKey model cryptMessage.key else model.messageKey
     sender_id = cryptMessage.sender_id
     receiver_id = cryptMessage.receiver_id
     text = doDecrypt key cryptMessage.text
@@ -99,13 +69,14 @@ decryptMessageAes model cryptMessage =
   in
   Message id key sender_id receiver_id text send_at receive_at read_at
 
+-- decrypt the message_key with RSA and decrypt the text with AES to show it to the User
+-- If this is a own message, the key is the own passphrase.
+-- If this is a message from another user, the key have to be encrypted with the own private key
 decryptChatPreviewAes : Model -> ChatPreview -> ChatPreview
 decryptChatPreviewAes model chatPreview = 
   let
     id = chatPreview.latest_message.id
-    -- If this is a own message, the key is the own passphrase. 
-    -- If this is a message from another user, the key have to be encrypted with the own private key
-    key = if sender_id /= model.user.id then decryptMessageKey model chatPreview.latest_message.key else model.passphrase 
+    key = if sender_id /= model.user.id then decryptMessageKey model chatPreview.latest_message.key else model.messageKey
     sender_id = chatPreview.latest_message.sender_id
     receiver_id = chatPreview.latest_message.receiver_id
     text = doDecrypt key chatPreview.latest_message.text
