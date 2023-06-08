@@ -10,6 +10,8 @@ import Services.ParserCrypt exposing (passphraseToInt)
 import Parser exposing (run)
 import Parser exposing (int)
 import List exposing (concat)
+import Arithmetic exposing (extendedGcd)
+import Tuple.Trio exposing (first)
 
 type alias P = Prime
 type alias Q = Prime
@@ -26,7 +28,7 @@ isPrime n =
 
 -- Define a generator for two prime numbers
 primeGenerator : Random.Generator Prime
-primeGenerator = Random.int 1 50000 |> Random.andThen (\n -> if isPrime n then Random.constant n else primeGenerator)
+primeGenerator = Random.int 1 100 |> Random.andThen (\n -> if isPrime n then Random.constant n else primeGenerator)
 
 -- Define a generator for a list of 20 prime numbers as string
 primeListGenerator : Random.Generator (List Int)
@@ -50,7 +52,7 @@ calculateD : Int -> Int
 calculateD phi = 
     let
         helper d =
-            if gcd d phi == 1 then 7 else helper (d - 1) -- statt 7 kommt d rein
+            if gcd d phi == 1 then d else helper (d - 1) -- statt 7 kommt d rein
     in
     helper (round (toFloat phi / 2- 1))
 
@@ -59,20 +61,14 @@ calculateD phi =
 -- TODO Ich bekomme e nicht berechnet, da ein zufälliges d gewählt wird und es dafür keine inverse gibt!!!
 
 calculateE : Int -> Int -> Int  
-calculateE d phi = 
-    let
-        helper e dP = case (modBy phi (e * dP) ) of
-            1 -> e
-            _ -> if e > 10000 then -1 else helper (e + 1) d
-    in
-    helper 2 d
+calculateE d phi = first (extendedGcd d phi)
 
 -- calculate a public key
 calculatePublicKey : PrivateKey -> Prime -> Prime -> PublicKey
-calculatePublicKey pk p q  = 
+calculatePublicKey sk p q  = 
     let
         n = calculateN p q
-        e = calculateE pk.d pk.phi
+        e = calculateE sk.d sk.phi
     in
     PublicKey e n
 
@@ -80,8 +76,9 @@ calculatePublicKey pk p q  =
 calculatePrivateKey : Prime -> Prime -> PrivateKey
 calculatePrivateKey p q = 
     let
+        n = p * q
         phi = calculatePhi p q
-        d = calculateD phi
+        d = calculateD n
     in
     PrivateKey p q phi d
 

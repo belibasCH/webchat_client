@@ -10,7 +10,6 @@ import Browser.Navigation exposing (Key)
 import Time
 import Crypto.Strings.Types exposing (Passphrase)
 
-
 type alias Model = {
   page : Page,
   user : User,

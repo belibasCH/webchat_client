@@ -17,7 +17,8 @@
             "elm/random": "1.0.0",
             "elm/time": "1.0.0",
             "lynn/elm-arithmetic": "3.0.0",
-            "truqu/elm-base64": "2.0.4"
+            "truqu/elm-base64": "2.0.4",
+            "edgerunner/elm-tuple-trio": "1.0.0"
         },
         "indirect": {
             "billstclair/elm-crypto-aes": "1.0.10",

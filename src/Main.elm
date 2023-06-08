@@ -41,6 +41,8 @@ import Services.Rsa exposing (primeListGenerator)
 import Services.Rsa exposing (generatePassphrase)
 import Services.Rsa exposing (decryptMessageKey)
 import Services.Rsa exposing (encryptMessageKey)
+import Tuple exposing (first)
+import Tuple exposing (second)
 
 
 
@@ -103,11 +105,11 @@ update msg model =
 generateKeyPair : Model -> (Int, Int) -> ( Model, Cmd Msg )
 generateKeyPair model n = 
   let
-    sk = calculatePrivateKey 19 13-- TODO (first n)(second n)
-    pk = calculatePublicKey sk 61 83 --TODO (first n)(second n)
+    sk = calculatePrivateKey (first n)(second n)-- TODO (first n)(second n)
+    pk = calculatePublicKey sk (first n)(second n) --TODO (first n)(second n)
 
   in
-    ({model | prime = { p = 19, q = 13}, privateKey = sk, publicKey = pk}, generatePassphrase) -- TODO p = (first n), q = (second n)
+    ({model | prime = {p = (first n), q = (second n)}, privateKey = sk, publicKey = pk}, generatePassphrase) -- TODO p = (first n), q = (second n)
 
 encodeChatText : Model -> Plaintext -> Ciphertext
 encodeChatText model plaintext= 
