@@ -34,7 +34,8 @@ doDecrypt passphrase ciphertext =
 
 -- encrypt the RSA Private Key with AES
 encryptRsaPrivateKeyWithAes : Model -> PrivateKey -> Passphrase -> Ciphertext
-encryptRsaPrivateKeyWithAes m pk pw = doEncrypt m.time pw (privateKeyToString pk)
+encryptRsaPrivateKeyWithAes m sk pw = doEncrypt m.time pw (privateKeyToString sk)
+
 
 decryptRsaPrivateKeyWithAes : Passphrase -> String  -> PrivateKey
 decryptRsaPrivateKeyWithAes pw chipertext  = case tryDecrypt pw chipertext of
@@ -54,11 +55,11 @@ createPrivateKey str =
       Just x -> x
       Nothing -> 0
 
-    phi = case List.head (List.drop 1 valueList) of
+    phi = case List.head (List.drop 2 valueList) of
       Just x -> x
       Nothing -> 0
 
-    d = case List.head (List.drop 1 valueList) of
+    d = case List.head (List.drop 3 valueList) of
       Just x -> x
       Nothing -> 0
   in
@@ -86,7 +87,9 @@ decryptMessageAes : Model -> Message -> Message
 decryptMessageAes model cryptMessage = 
   let
     id = cryptMessage.id
-    key = decryptMessageKey model cryptMessage.key
+    -- If this is a own message, the key is the own passphrase. 
+    -- If this is a message from another user, the key have to be encrypted with the own private key
+    key = if sender_id /= model.user.id then decryptMessageKey model cryptMessage.key else model.passphrase
     sender_id = cryptMessage.sender_id
     receiver_id = cryptMessage.receiver_id
     text = doDecrypt key cryptMessage.text
@@ -100,10 +103,12 @@ decryptChatPreviewAes : Model -> ChatPreview -> ChatPreview
 decryptChatPreviewAes model chatPreview = 
   let
     id = chatPreview.latest_message.id
-    key = decryptMessageKey model chatPreview.latest_message.key
+    -- If this is a own message, the key is the own passphrase. 
+    -- If this is a message from another user, the key have to be encrypted with the own private key
+    key = if sender_id /= model.user.id then decryptMessageKey model chatPreview.latest_message.key else model.passphrase 
     sender_id = chatPreview.latest_message.sender_id
     receiver_id = chatPreview.latest_message.receiver_id
-    text = doDecrypt model.passphrase chatPreview.latest_message.text
+    text = doDecrypt key chatPreview.latest_message.text
     send_at = chatPreview.latest_message.sent_at
     receive_at = chatPreview.latest_message.received_at 
     read_at =  chatPreview.latest_message.read_at 

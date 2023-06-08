@@ -108,6 +108,7 @@ generateKeyPair model n =
     sk = calculatePrivateKey (first n)(second n)-- TODO (first n)(second n)
     pk = calculatePublicKey sk (first n)(second n) --TODO (first n)(second n)
 
+
   in
     ({model | prime = {p = (first n), q = (second n)}, privateKey = sk, publicKey = pk}, generatePassphrase) -- TODO p = (first n), q = (second n)
 

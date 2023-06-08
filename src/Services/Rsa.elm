@@ -12,6 +12,11 @@ import Parser exposing (int)
 import List exposing (concat)
 import Arithmetic exposing (extendedGcd)
 import Tuple.Trio exposing (first)
+import Arithmetic exposing (isCoprimeTo)
+import Arithmetic exposing (primesBelow)
+import Parser exposing (number)
+import Arithmetic exposing (totient)
+import Arithmetic exposing (powerMod)
 
 type alias P = Prime
 type alias Q = Prime
@@ -28,11 +33,11 @@ isPrime n =
 
 -- Define a generator for two prime numbers
 primeGenerator : Random.Generator (Prime, Prime)
-primeGenerator = Random.pair (Random.int 7 9) (Random.int 2 5) |> Random.andThen (\n -> if isPrime (Tuple.first n) && isPrime (Tuple.second n) &&  (Tuple.first n) /= (Tuple.second n) then Random.constant n else primeGenerator)
+primeGenerator = Random.pair (Random.int 50 5000) (Random.int 60 4000) |> Random.andThen (\n -> if isPrime (Tuple.first n) && isPrime (Tuple.second n) &&  (Tuple.first n) /= (Tuple.second n) then Random.constant n else primeGenerator)
 
 -- Define a generator for a list of 20 prime numbers as string
 primeListGenerator : Random.Generator (List Int)
-primeListGenerator = Random.list 1 (Random.int 0 100)
+primeListGenerator = Random.list 1 (Random.int 1 100)
 
 generatePrimes : Cmd Msg
 generatePrimes = Random.generate PrimePQ primeGenerator
@@ -47,21 +52,27 @@ calculateN p q = p * q
 calculatePhi : Prime -> Prime -> Int
 calculatePhi p q = (p - 1) * (q - 1)
 
--- calculate d that is element of Z* phi(n) and ggt (d, phi(n)) = 1
+-- Calculate a d that is an element from Z* phi and is multiplicative inverse of (e modulo phi)
 calculateD : Int -> Int
-calculateD n = 
-    let
-        helper d =
-            if gcd d n == 1 then d else helper (d - 1) -- statt 7 kommt d rein
-    in
-    if n < 12 then (helper (round (toFloat n - 1))) else (helper (round (toFloat n / 2)))
+calculateD n = case primesBelow n |> List.filter (\x -> isCoprimeTo x n) |> List.reverse  |> List.drop 17 |> List.head of
+    Just x -> x
+    Nothing -> 0
+  --  let
+        --helper d =
+    --        if isCoprimeTo d n then d else helper (d - 1) -- statt 7 kommt d rein
+--in
+    -- if n < 12 then (helper (round (toFloat n - 1))) else (helper (round (toFloat n / 2)))
+    --helper (round (toFloat n - 1))
 
 
 -- calculate ´e´ that is an element from Z* phi and is multiplicative inverse of (d modulo phi)
 -- TODO Ich bekomme e nicht berechnet, da ein zufälliges d gewählt wird und es dafür keine inverse gibt!!!
 
 calculateE : Int -> Int -> Int  
-calculateE d phi = first (extendedGcd d phi)
+--calculateE d phi = first (extendedGcd d phi)
+calculateE d phi = case modularInverse d phi of
+    Just x -> x
+    Nothing -> 0
 
 -- calculate a public key
 calculatePublicKey : PrivateKey -> Prime -> Prime -> PublicKey
@@ -89,7 +100,7 @@ decrypt y sk pk =
         d = sk.d
         n = pk.n
     in
-    modBy  n (y ^ d)
+    powerMod y d n
     
 -- encrypt an int with rsa
 
@@ -99,7 +110,7 @@ encryptFunc x pk =
         e = pk.e
         n = pk.n
     in
-    modBy n (x ^ e)
+    powerMod x e n
 
 -- encrypt a message_key for send with a Message
 encryptMessageKey : Model -> String
