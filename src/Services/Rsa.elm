@@ -27,15 +27,15 @@ isPrime n =
     n > 1 && helper 2
 
 -- Define a generator for two prime numbers
-primeGenerator : Random.Generator Prime
-primeGenerator = Random.int 1 100 |> Random.andThen (\n -> if isPrime n then Random.constant n else primeGenerator)
+primeGenerator : Random.Generator (Prime, Prime)
+primeGenerator = Random.pair (Random.int 7 9) (Random.int 2 5) |> Random.andThen (\n -> if isPrime (Tuple.first n) && isPrime (Tuple.second n) &&  (Tuple.first n) /= (Tuple.second n) then Random.constant n else primeGenerator)
 
 -- Define a generator for a list of 20 prime numbers as string
 primeListGenerator : Random.Generator (List Int)
 primeListGenerator = Random.list 1 (Random.int 0 100)
 
 generatePrimes : Cmd Msg
-generatePrimes = Random.generate PrimePQ (Random.pair primeGenerator primeGenerator)
+generatePrimes = Random.generate PrimePQ primeGenerator
 
 -- Generate a passphrase with 20 prime numbers
 generatePassphrase : Cmd Msg
@@ -49,12 +49,12 @@ calculatePhi p q = (p - 1) * (q - 1)
 
 -- calculate d that is element of Z* phi(n) and ggt (d, phi(n)) = 1
 calculateD : Int -> Int
-calculateD phi = 
+calculateD n = 
     let
         helper d =
-            if gcd d phi == 1 then d else helper (d - 1) -- statt 7 kommt d rein
+            if gcd d n == 1 then d else helper (d - 1) -- statt 7 kommt d rein
     in
-    helper (round (toFloat phi / 2- 1))
+    if n < 12 then (helper (round (toFloat n - 1))) else (helper (round (toFloat n / 2)))
 
 
 -- calculate ´e´ that is an element from Z* phi and is multiplicative inverse of (d modulo phi)
