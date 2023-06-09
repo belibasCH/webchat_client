@@ -90,8 +90,6 @@ generateKeyPair model n =
   let
     sk = calculatePrivateKey (first n)(second n)
     pk = calculatePublicKey sk (first n)(second n)
-
-
   in
     ({model | privateKey = sk, tmpPublicKey = pk}, generatePassphrase)
 
@@ -191,7 +189,7 @@ withLoginContainer model content =
     content
     ],
     div [id "bubble1"] [],
-    div [ class "server-message "] [text model.receivedMessageFromServer.msgType],
+    --div [ class "server-message "] [text model.receivedMessageFromServer.msgType],
     withErrorMessage model.errorMessage
   ]
 
@@ -201,7 +199,7 @@ withContainer model content =
   navigation model.page,
   content,
   secureSign,
-  div [ class "server-message "] [text model.receivedMessageFromServer.msgType],
+  --div [ class "server-message "] [text model.receivedMessageFromServer.msgType],
   withErrorMessage model.errorMessage
  ]
 
