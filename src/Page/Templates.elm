@@ -30,7 +30,7 @@ withLoginContainer model content =
     content
     ],
     div [id "bubble1"] [],
-    div [ class "server-message "] [text model.revicedMessageFromServer.msgType],
+    div [ class "server-message "] [text model.receivedMessageFromServer.msgType],
     withErrorMessage model.errorMessage
   ]
 
@@ -40,7 +40,7 @@ withContainer model content =
   navigation model.page,
   content,
   secureSign,
-  div [ class "server-message "] [text model.revicedMessageFromServer.msgType],
+  div [ class "server-message "] [text model.receivedMessageFromServer.msgType],
   withErrorMessage model.errorMessage
  ]
 
