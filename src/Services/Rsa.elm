@@ -1,22 +1,12 @@
 module Services.Rsa exposing (..)
 
-import Arithmetic exposing (isPrime)
 import Random exposing (..)
 import Types exposing (..)
-import Arithmetic exposing (gcd)
-import Arithmetic exposing (modularInverse)
-import Services.ParserCrypt exposing (messageToString)
 import Services.ParserCrypt exposing (passphraseToInt)
 import Parser exposing (run)
-import Parser exposing (int)
-import List exposing (concat)
-import Arithmetic exposing (extendedGcd)
-import Tuple.Trio exposing (first)
-import Arithmetic exposing (isCoprimeTo)
-import Arithmetic exposing (primesBelow)
-import Parser exposing (number)
-import Arithmetic exposing (totient)
-import Arithmetic exposing (powerMod)
+import List
+import Arithmetic exposing (isPrime, isCoprimeTo, primesBelow, powerMod, modularInverse)
+import Parser
 
 type alias P = Prime
 type alias Q = Prime

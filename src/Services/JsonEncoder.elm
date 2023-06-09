@@ -2,19 +2,11 @@ module Services.JsonEncoder exposing (..)
 import Json.Encode as E
 import Types exposing (..)
 import Json.Decode exposing (Error)
-import Json.Decode exposing (decodeString)
 import Json.Decode as D
 import Maybe exposing (withDefault)
-import Services.ParserCrypt exposing (decodeStringMessage, publicKeyToString, stringToPrivateKey)
-import List exposing (map)
-import Services.ParserCrypt exposing (stringToPublicKey)
-import Services.ParserCrypt exposing (convertPrivateKeyToString)
-import Services.CryptoStringAes exposing (doDecrypt)
-import Services.CryptoStringAes exposing (encryptPrivateKeyWithAes)
-import Services.CryptoStringAes exposing (doEncrypt)
+import Services.ParserCrypt exposing (publicKeyToString, stringToPublicKey)
+import Services.CryptoStringAes exposing (decryptPrivateKeyWithAes, doEncrypt, doDecrypt, encryptPrivateKeyWithAes)
 import Sha256 exposing (sha256)
-import Services.CryptoStringAes exposing (decryptMessageAes)
-import Services.CryptoStringAes exposing (decryptPrivateKeyWithAes)
 
 exampleMessage : Message
 exampleMessage = {

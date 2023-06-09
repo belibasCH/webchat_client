@@ -1,11 +1,8 @@
 module Services.ParserCrypt exposing (..)
 
 import List exposing (filterMap)
-import Types exposing (Message)
 import String exposing (split)
-import Types exposing (PrivateKey)
 import Debug exposing (toString)
-import Types exposing (PublicKey)
 import Parser exposing (..)
 import Types exposing (..)
 
