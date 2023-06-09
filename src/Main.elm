@@ -82,7 +82,7 @@ update msg model =
     activeChatPartner = chatPreview.user },Cmd.batch[
     sendMessage (ToJson.encodeLoadMessages chatPreview.user.id),
     sendMessage (ToJson.encodeLoadChats)])
-  (_, SendChatMessage) -> ({model | currentText="", messages = ( model.messages  ++ [newMessage model] )}, sendMessage (ToJson.encodeSendMessage model.activeChatPartner.id model.currentText))
+  (_, SendChatMessage) -> ({model | currentText="", messages = ( model.messages  ++ [newMessage model] )}, sendMessage (ToJson.encodeSendMessage model.activeChatPartner.id model.currentText model.messageKey))
   (_, ChatInput i) -> ({model | currentText=i}, Cmd.none)
   (_, SubmitReadMsg id) -> ({model | messages = List.map (\m -> if m.id == id then {m | read_at = Just "now"} else m) model.messages}, Cmd.batch [
     sendMessage (ToJson.encodeMarkAsRead id),
@@ -174,7 +174,7 @@ subscriptions _ =
 view : Model -> Html Msg
 view m = case m.page of
   LoginPage -> withLoginContainer m (Login.loginView m.user)
-  RegisterPage -> withLoginContainer m (Register.registerView m.errorMessage)
+  RegisterPage -> withLoginContainer m (Register.registerView)
   ChatPage -> withContainer m (Chat.chatView m.activeChatPartner m.messages m.chats m)
   NewChatPage -> withContainer m (NewChat.newChatView m)
   ProfilePage -> withContainer m (Profile.profileView m.user)

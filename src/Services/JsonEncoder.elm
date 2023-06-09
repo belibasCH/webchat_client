@@ -160,7 +160,7 @@ returnReceiveMessage r = case r of
 returnUserCreated : Result Error UserCreated -> UserPreview
 returnUserCreated r = case r of
   Ok ok -> {user = ok.user, is_online = False}
-  Err e -> {user = {id = Debug.toString e, name = Debug.toString e, avatar = Nothing}, is_online = False}
+  Err e -> {user = {id = Debug.toString e, name = Debug.toString e, avatar = Nothing, public_key = PublicKey 0 0}, is_online = False}
 
 returnUserLoggedIn : Result Error UserLoggedIn -> String
 returnUserLoggedIn r = case r of
