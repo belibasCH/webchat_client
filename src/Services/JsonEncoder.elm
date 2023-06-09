@@ -5,7 +5,7 @@ import Json.Decode exposing (Error)
 import Json.Decode as D
 import Maybe exposing (withDefault)
 import Services.ParserCrypt exposing (publicKeyToString, stringToPublicKey)
-import Services.CryptoStringAes exposing (decryptPrivateKeyWithAes, doEncrypt, doDecrypt, encryptPrivateKeyWithAes)
+import Services.CryptoStringAes exposing (decryptPrivateKeyWithAes, encryptAes, decryptAes, encryptPrivateKeyWithAes)
 import Sha256 exposing (sha256)
 
 exampleMessage : Message
@@ -37,7 +37,7 @@ encodeRegisterUser m =
     , ("avatar", E.string (withDefault "" m.user.avatar))
     , ("public_key", E.string (publicKeyToString m.tmpPublicKey))
     , ("private_key", E.string (encryptPrivateKeyWithAes m m.privateKey m.password))
-    , ("message_key", E.string (doEncrypt m.time m.password m.messageKey))
+    , ("message_key", E.string (encryptAes m.time m.password m.messageKey))
     ]
 
 
@@ -124,7 +124,7 @@ encodeChangePassword m  =
     [ ("type", E.string "change_password")
     , ("password", E.string (sha256 m.password))
     , ("private_key", E.string (encryptPrivateKeyWithAes m m.privateKey m.password))
-    , ("message_key", E.string (doEncrypt m.time m.password m.messageKey))
+    , ("message_key", E.string (encryptAes m.time m.password m.messageKey))
     ]
     
 returnChats : Result Error ChatsLoaded -> List ChatPreview
@@ -241,7 +241,7 @@ decodePrivateKey : Model -> D.Decoder PrivateKey
 decodePrivateKey model = D.map (decryptPrivateKeyWithAes  model.password) (D.field "private_key" D.string)
 
 decodeMessageKey : Model -> D.Decoder Message_Key
-decodeMessageKey model= D.map (doDecrypt  model.password) (D.field "message_key" D.string)
+decodeMessageKey model= D.map (decryptAes  model.password) (D.field "message_key" D.string)
 
 returnSave : Result Error LoginSucceded -> LoginSucceded
 returnSave s = case s of

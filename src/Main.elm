@@ -54,7 +54,6 @@ update msg model =
   (_, SetAvatar a) -> ({model | user = {name = model.user.name, id = model.user.id, avatar = Just a, public_key = model.user.public_key}}, Cmd.none)
   (_, ValidatePassword p)-> (model, Cmd.none)
   (_, SubmitRegistration) -> ({model | page = LoginPage}, generatePrimes)
-  --  (_, SubmitRegistration) -> ({model | page = LoginPage}, sendMessage (ToJson.encodeRegisterUser model))
   (_, SubmitLogin) -> ( model , sendMessage (ToJson.encodeLogin model))
   (_, Recv s) -> manageAnswers (returnTypeSave (D.decodeString decodeType s)) s model
   (_, SetPage p) -> changePage p model
@@ -68,7 +67,7 @@ update msg model =
     activeChatPartner = chatPreview.user },Cmd.batch[
     sendMessage (ToJson.encodeLoadMessages chatPreview.user.id),
     sendMessage (ToJson.encodeLoadChats)])
-  (_, SendChatMessage) -> ({model | currentText="", messages = ( model.messages  ++ [newMessage model] )}, sendMessage (ToJson.encodeSendMessage model.activeChatPartner.id model.currentText model.messageKey))
+  (_, SendChatMessage) -> ({model | currentText="", messages = ( model.messages  ++ [newMessage model] )}, sendMessage (ToJson.encodeSendMessage model.activeChatPartner.id (encodeChatText model model.currentText) (encryptMessageKey model)))
   (_, ChatInput i) -> ({model | currentText=i}, Cmd.none)
   (_, SubmitReadMsg id) -> ({model | messages = List.map (\m -> if m.id == id then {m | read_at = Just "now"} else m) model.messages}, Cmd.batch [
     sendMessage (ToJson.encodeMarkAsRead id),
@@ -98,11 +97,11 @@ generateKeyPair model n =
 
 encodeChatText : Model -> Plaintext -> Ciphertext
 encodeChatText model plaintext=
-  doEncrypt model.time model.messageKey plaintext
+  encryptAes model.time model.messageKey plaintext
 
 
 decodeAesChipertext : Model -> Ciphertext -> Plaintext
-decodeAesChipertext model chipertext = doDecrypt model.messageKey chipertext
+decodeAesChipertext model chipertext = decryptAes model.messageKey chipertext
 
 
 read : File -> Cmd Msg
