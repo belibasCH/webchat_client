@@ -1,14 +1,7 @@
 module Types exposing (..)
-import Html exposing (text)
-import Json.Decode as D
-import Json.Encode as E
-import Html.Attributes exposing (type_)
-import Html.Attributes exposing (id)
-import List exposing (filter)
+
 import File exposing (File)
-import Browser.Navigation exposing (Key)
 import Time
-import Crypto.Strings.Types exposing (Passphrase)
 
 type alias Model = {
   page : Page,

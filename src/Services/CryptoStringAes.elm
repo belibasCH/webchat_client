@@ -1,23 +1,18 @@
 module Services.CryptoStringAes exposing (..)
 
-import Crypto.Strings exposing (decrypt, encrypt, justEncrypt)
+import Crypto.Strings exposing (decrypt, justEncrypt)
 import Crypto.Strings.Types exposing (Passphrase, Plaintext, Ciphertext)
 import Random exposing (Seed, initialSeed)
-import Random exposing (initialSeed)
-import Types exposing (Model)
-import Types exposing (PrivateKey)
+import Types exposing (Model, Message, PrivateKey, ChatPreview)
 import Time
 import Services.ParserCrypt exposing (convertPrivateKeyToString, convertStringToPrivateKey)
 import String exposing (split)
-import List exposing (filterMap)
-import Types exposing (Message)
 import Services.Rsa exposing (decryptMessageKey)
-import Types exposing (ChatPreview)
 
 -- this is the main encrypt function. It encrypts the plaintext with the passphrase and a timestamp. So the ciphertext is always different
 doEncrypt : Time.Posix -> Passphrase -> Plaintext -> Ciphertext
 doEncrypt time passphrase plaintext =
-    justEncrypt (Random.initialSeed (Time.posixToMillis time)) passphrase plaintext
+    justEncrypt (initialSeed (Time.posixToMillis time)) passphrase plaintext
 
 -- this is the main decrypt function. It decrypts the ciphertext with the passphrase with aes
 doDecrypt : Passphrase -> Ciphertext -> Plaintext
