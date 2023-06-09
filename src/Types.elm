@@ -1,11 +1,7 @@
 module Types exposing (..)
-import Html exposing (text)
-import Json.Decode as D
-import Json.Encode as E
-import Html.Attributes exposing (type_)
-import Html.Attributes exposing (id)
-import List exposing (filter)
+
 import File exposing (File)
+import Time
 
 type alias Model = {
   page : Page,
@@ -18,7 +14,12 @@ type alias Model = {
   currentText : String,
   errorMessage : String,
   chats : List ChatPreview,
-  revicedMessageFromServer : Answertype
+  receivedMessageFromServer : Answertype,
+  prime : PrimePair,
+  tmpPublicKey : PublicKey, -- when user was created, this public will encrypted an send to server. After Login the public key will be in the User object
+  privateKey : PrivateKey,
+  time : Time.Posix,
+  messageKey : String
   }
 type Msg
   =   SubmitRegistration
@@ -26,6 +27,7 @@ type Msg
     |   Recv String
     |   SetUsername String
     |   SetPassword String
+    |   SetPassphrase String
     |   ValidatePassword String
     |   SetPage Page
     |   ChangeUserName
@@ -41,6 +43,10 @@ type Msg
     |   ChangeAvatar 
     |   GotFile File
     |   ImageLoaded String
+    |   PrimePQ (Int, Int)
+    |   Passphrase (List Int)
+    |   GenerateKeyPair
+    |   Tick Time.Posix
   
 type alias ChatInfo = {
   currentText : String,
@@ -72,6 +78,7 @@ type alias Chat = {
   }
 type alias Message = {
   id : String,
+  key : String,
   sender_id : String,
   receiver_id : String,
   text : String,
@@ -82,12 +89,15 @@ type alias Message = {
 type alias User = {
   name : String,
   id : String,
-  avatar : Maybe String
+  avatar : Maybe String,
+  public_key : PublicKey
   }
 
 type alias LoginSucceded = {
   msgType : String,
-  user : User
+  user : User,
+  privateKey : PrivateKey,
+  messageKey : Message_Key
   }
 type alias ChatsLoaded = {
   msgType : String,
@@ -101,6 +111,7 @@ type alias UsersLoaded = {
   msgType : String,
   users : List UserPreview
   }
+
 type alias DateTime = String
 
 type alias Answertype = {
@@ -130,4 +141,23 @@ type alias UserLoggedIn = {
 type alias UserLoggedOut = {
   msgType : String,
   id : String
+  }
+
+type alias Prime = Int
+type alias Message_Key = String
+type alias PrimePair = {
+  p : Prime,
+  q : Prime
+  }
+
+type alias PublicKey = {
+  e : Int,
+  n : Int
+  }
+
+type alias PrivateKey = {
+  p : Int,
+  q : Int,
+  phi : Int,
+  d : Int
   }

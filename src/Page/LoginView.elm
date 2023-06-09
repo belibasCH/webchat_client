@@ -13,6 +13,7 @@ loginView u  =
       input [class "login-input", type_ "password", placeholder "Password", onInput SetPassword] []
       ],
       button [class "primary-button login", onClick SubmitLogin] [text "Login"]
+      
     
     ]
   

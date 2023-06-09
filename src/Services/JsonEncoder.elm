@@ -4,9 +4,14 @@ import Types exposing (..)
 import Json.Decode exposing (Error)
 import Json.Decode as D
 import Maybe exposing (withDefault)
+import Services.ParserCrypt exposing (publicKeyToString, stringToPublicKey)
+import Services.CryptoStringAes exposing (decryptPrivateKeyWithAes, encryptAes, decryptAes, encryptPrivateKeyWithAes)
+import Sha256 exposing (sha256)
+
 exampleMessage : Message
 exampleMessage = {
   id = "ExID", 
+  key = "ExKey",
   sender_id = "ExSenID",
   receiver_id = "ExRecID",
   text = "Expample Text",
@@ -17,27 +22,32 @@ exampleMessage = {
 
 errorChatPreview : ChatPreview
 errorChatPreview = {
-  user = {id = "Error", name = "Error", avatar = Nothing},
+  user = {id = "Error", name = "Error", avatar = Nothing, public_key = PublicKey 0 0},
   latest_message = exampleMessage,
   total_message_count = 3,
   unread_message_count = 1 
   }
 
-encodeRegisterUser : User -> String-> E.Value
-encodeRegisterUser u pw =
+encodeRegisterUser : Model -> E.Value
+encodeRegisterUser m =
   E.object
     [ ("type", E.string "create_user")
-    , ("username", E.string u.name)
-    , ("password", E.string pw)
-    , ("avatar", E.string (withDefault "" u.avatar))
+    , ("username", E.string m.user.name)
+    , ("password", E.string ( sha256 m.password))
+    , ("avatar", E.string (withDefault "" m.user.avatar))
+    , ("public_key", E.string (publicKeyToString m.tmpPublicKey))
+    , ("private_key", E.string (encryptPrivateKeyWithAes m m.privateKey m.password))
+    , ("message_key", E.string (encryptAes m.time m.password m.messageKey))
     ]
 
-encodeLogin : User -> String -> E.Value
-encodeLogin u pw=
+
+
+encodeLogin : Model -> E.Value
+encodeLogin m =
   E.object
     [ ("type", E.string "login")
-    , ("username", E.string u.name)
-    , ("password", E.string pw)
+    , ("username", E.string m.user.name)
+    , ("password", E.string (sha256 m.password))
     ]
 
 encodeLoadChats : E.Value
@@ -85,12 +95,13 @@ encodeMarkAsRead message_id =
     , ("message_id", E.string message_id)
     ]
 
-encodeSendMessage : String -> String -> E.Value
-encodeSendMessage receiver_id text =
+encodeSendMessage : String -> String -> Message_Key -> E.Value
+encodeSendMessage receiver_id text crypted_message_key =
   E.object
     [ ("type", E.string "send")
     , ("receiver_id", E.string receiver_id)
     , ("text", E.string text)
+    , ("key", E.string crypted_message_key)
     ]
 
 encodeChangeAvatar : String -> E.Value
@@ -107,11 +118,13 @@ encodeChangeUserName name =
     , ("username", E.string name)
     ]
 
-encodeChangePassword : String -> E.Value
-encodeChangePassword password =
+encodeChangePassword : Model -> E.Value
+encodeChangePassword m  =
   E.object
     [ ("type", E.string "change_password")
-    , ("password", E.string password)
+    , ("password", E.string (sha256 m.password))
+    , ("private_key", E.string (encryptPrivateKeyWithAes m m.privateKey m.password))
+    , ("message_key", E.string (encryptAes m.time m.password m.messageKey))
     ]
     
 returnChats : Result Error ChatsLoaded -> List ChatPreview
@@ -127,32 +140,32 @@ returnUsers r = case r of
 returnUser : Result Error LoginSucceded ->  User
 returnUser r = case r of
   Ok ok -> ok.user
-  Err _ -> {id = "", name = "", avatar = Nothing}
+  Err e -> {id = Debug.toString e, name = Debug.toString e, avatar = Nothing, public_key = stringToPublicKey "Error"}
 
 returnError : Result Error ErrorMessage -> String
 returnError r = case r of
   Ok ok -> ok.error
-  Err _ -> ""
+  Err e -> Debug.toString e
 
 returnReceiveMessage : Result Error ReceiveMessage -> String
 returnReceiveMessage r = case r of
   Ok ok -> ok.message.id
-  Err _ -> "Error decoding message" 
+  Err _ -> "Error decoding message"
 
 returnUserCreated : Result Error UserCreated -> UserPreview
 returnUserCreated r = case r of
   Ok ok -> {user = ok.user, is_online = False}
-  Err _ -> {user = {id = "", name = "", avatar = Nothing}, is_online = False}
+  Err e -> {user = {id = Debug.toString e, name = Debug.toString e, avatar = Nothing, public_key = PublicKey 0 0}, is_online = False}
 
 returnUserLoggedIn : Result Error UserLoggedIn -> String
 returnUserLoggedIn r = case r of
   Ok ok -> ok.id
-  Err _ -> ""
+  Err e -> Debug.toString e
 
 returnUserLoggedOut : Result Error UserLoggedOut -> String
 returnUserLoggedOut r = case r of
   Ok ok -> ok.id
-  Err _ -> ""
+  Err e -> Debug.toString e
 
 
 decodeError : D.Decoder ErrorMessage
@@ -199,9 +212,10 @@ decodeChatPreview = D.map4 ChatPreview
   (D.field "unread_message_count" D.int)
 
 decodeMessage : D.Decoder Message
-decodeMessage = D.map7 Message 
+decodeMessage = D.map8 Message
   (D.field "id" D.string) 
-  (D.field "sender_id" D.string) 
+  (D.field "key" D.string)
+  (D.field "sender_id" D.string)
   (D.field "receiver_id" D.string) 
   (D.field "text" D.string) 
   (D.field "sent_at" D.string) 
@@ -217,16 +231,22 @@ returnTypeSave r = case r of
   Err _ -> Answertype "Error"
   
 
-decodeLoginSucceded : D.Decoder LoginSucceded
-decodeLoginSucceded = D.map2 LoginSucceded (D.field "type" D.string) (D.field "user" decodeUser)
+decodeLoginSucceded : Model -> D.Decoder LoginSucceded
+decodeLoginSucceded m = D.map4 LoginSucceded (D.field "type" D.string) (D.field "user" decodeUser) (decodePrivateKey m)(decodeMessageKey m)
     
 decodeUser : D.Decoder User
-decodeUser = D.map3 User (D.field "name" D.string)  (D.field "id" D.string) (D.field "avatar" (D.nullable D.string))
+decodeUser = D.map4 User (D.field "name" D.string)  (D.field "id" D.string) (D.field "avatar" (D.nullable D.string)) (D.field "public_key" (D.map stringToPublicKey D.string))
+
+decodePrivateKey : Model -> D.Decoder PrivateKey
+decodePrivateKey model = D.map (decryptPrivateKeyWithAes  model.password) (D.field "private_key" D.string)
+
+decodeMessageKey : Model -> D.Decoder Message_Key
+decodeMessageKey model= D.map (decryptAes  model.password) (D.field "message_key" D.string)
 
 returnSave : Result Error LoginSucceded -> LoginSucceded
 returnSave s = case s of
   Ok ok -> ok
-  Err _ -> LoginSucceded "Error" {id = "Error", name = "Error" , avatar = Nothing}
+  Err e -> LoginSucceded "Error" {id = "Error", name = "Error" , avatar = Nothing, public_key = PublicKey 0 0} (PrivateKey 0 0 0 0) "Error"
 
 returnLoadMessages : Result Error ChatLoaded -> List Message
 returnLoadMessages s = case s of
@@ -251,3 +271,12 @@ returnMessageRead s = case s of
   Ok ok -> ok.id
   Err _ -> "Error"
 
+returnPrivateKey : Result Error PrivateKey  -> PrivateKey
+returnPrivateKey s = case s of
+  Ok ok ->  ok
+  Err e -> PrivateKey 0 0 0 0
+
+returnMessageKey : Result Error Message_Key  -> Message_Key
+returnMessageKey s = case s of
+  Ok ok ->  ok
+  Err e -> "Error"
