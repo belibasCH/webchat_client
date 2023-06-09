@@ -133,7 +133,7 @@ returnChats r = case r of
 returnUsers : Result Error UsersLoaded -> List UserPreview
 returnUsers r = case r of
   Ok ok -> ok.users
-  Err e -> []
+  Err _ -> []
 
 returnUser : Result Error LoginSucceded ->  User
 returnUser r = case r of
@@ -143,7 +143,7 @@ returnUser r = case r of
 returnError : Result Error ErrorMessage -> String
 returnError r = case r of
   Ok ok -> ok.error
-  Err _ -> ""
+  Err e -> Debug.toString e
 
 returnReceiveMessage : Result Error ReceiveMessage -> String
 returnReceiveMessage r = case r of
@@ -158,12 +158,12 @@ returnUserCreated r = case r of
 returnUserLoggedIn : Result Error UserLoggedIn -> String
 returnUserLoggedIn r = case r of
   Ok ok -> ok.id
-  Err _ -> ""
+  Err e -> Debug.toString e
 
 returnUserLoggedOut : Result Error UserLoggedOut -> String
 returnUserLoggedOut r = case r of
   Ok ok -> ok.id
-  Err _ -> ""
+  Err e -> Debug.toString e
 
 
 decodeError : D.Decoder ErrorMessage
