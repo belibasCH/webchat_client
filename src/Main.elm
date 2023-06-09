@@ -59,7 +59,7 @@ update msg model =
   (_, Recv s) -> manageAnswers (returnTypeSave (D.decodeString decodeType s)) s model
   (_, SetPage p) -> changePage p model
   (_, ChangeUserName) -> (model, sendMessage (ToJson.encodeChangeUserName model.user.name))
-  (_, ChangePassword) -> (model, sendMessage (ToJson.encodeChangePassword model.password))
+  (_, ChangePassword) -> (model, sendMessage (ToJson.encodeChangePassword model))
   (_, ChangeAvatar) -> (model, sendMessage (ToJson.encodeChangeAvatar (withDefault "" model.user.avatar)))
   (_, SendNewPW) -> (model, Cmd.none)
   (_, StartChat userPreview) -> ({model | page = ChatPage, activeChatPartner = userPreview.user }, sendMessage (ToJson.encodeLoadMessages userPreview.user.id))

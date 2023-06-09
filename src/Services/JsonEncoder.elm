@@ -118,11 +118,13 @@ encodeChangeUserName name =
     , ("username", E.string name)
     ]
 
-encodeChangePassword : String -> E.Value
-encodeChangePassword password =
+encodeChangePassword : Model -> E.Value
+encodeChangePassword m  =
   E.object
     [ ("type", E.string "change_password")
-    , ("password", E.string password)
+    , ("password", E.string (sha256 m.password))
+    , ("private_key", E.string (encryptPrivateKeyWithAes m m.privateKey m.password))
+    , ("message_key", E.string (doEncrypt m.time m.password m.messageKey))
     ]
     
 returnChats : Result Error ChatsLoaded -> List ChatPreview
