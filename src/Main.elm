@@ -1,7 +1,6 @@
 port module Main exposing (..)
-
 import Browser
-import Html exposing (Html, button, div, text, li, h2, a, h1 , h3, ul,p,nav,textarea, img)
+import Html exposing (..)
 import Html.Events exposing (..)
 import Html.Attributes exposing (class)
 import Html.Attributes exposing (..)
@@ -27,6 +26,7 @@ import Html exposing (s)
 import File exposing (File)
 import Task
 import Services.InitialData exposing (..)
+import Page.Templates exposing (..)
 import Base64
 import Services.Rsa exposing (generatePrimes)
 import Services.Rsa exposing (calculatePublicKey)
@@ -80,10 +80,8 @@ update msg model =
   (_, LoadMessages chatPreview) -> ({model | 
     page = ChatPage, 
     activeChatPartner = chatPreview.user },Cmd.batch[
-    sendMessage (ToJson.encodeLoadMessages  chatPreview.user.id),
-    sendMessage (ToJson.encodeLoadChats)
-    ]
-    )
+    sendMessage (ToJson.encodeLoadMessages chatPreview.user.id),
+    sendMessage (ToJson.encodeLoadChats)])
   (_, SendChatMessage) -> ({model | currentText="", messages = ( model.messages  ++ [newMessage model] )}, sendMessage (ToJson.encodeSendMessage model.activeChatPartner.id (encodeChatText model model.currentText) (encryptMessageKey model)))
   (_, ChatInput i) -> ({model | currentText=i}, Cmd.none)
   (_, SubmitReadMsg id) -> ({model | messages = List.map (\m -> if m.id == id then {m | read_at = Just "now"} else m) model.messages}, Cmd.batch [
@@ -92,18 +90,18 @@ update msg model =
     ])
   (_, Search s) -> ({model | filteredUsers = List.filter (\u -> String.contains s u.user.name) model.users}, Cmd.none)
   (_, GotFile f) -> (model,  read f)
-  (_, ImageLoaded s) -> ({model | user = {name = model.user.name, id = model.user.id, avatar = Just ( s), public_key = model.user.public_key}}, 
+  (_, ImageLoaded s) -> ({model | user = {name = model.user.name, id = model.user.id, avatar = Just ( s), public_key = model.user.public_key}},
    sendMessage (ToJson.encodeChangeAvatar s))
-  (_, GenerateKeyPair) -> (model, generatePrimes) 
+  (_, GenerateKeyPair) -> (model, generatePrimes)
   (_, PrimePQ n) -> generateKeyPair model n
   (_, Passphrase p) -> ({model | messageKey = listToString p}, sendMessage (ToJson.encodeRegisterUser {model | messageKey = listToString p}))
   (_, Tick newTime) -> ({model | time = newTime}, Cmd.none)
-  
+
 
 
 
 generateKeyPair : Model -> (Int, Int) -> ( Model, Cmd Msg )
-generateKeyPair model n = 
+generateKeyPair model n =
   let
     sk = calculatePrivateKey (first n)(second n)
     pk = calculatePublicKey sk (first n)(second n)
@@ -113,9 +111,9 @@ generateKeyPair model n =
     ({model | privateKey = sk, tmpPublicKey = pk}, generatePassphrase)
 
 encodeChatText : Model -> Plaintext -> Ciphertext
-encodeChatText model plaintext= 
+encodeChatText model plaintext=
   doEncrypt model.time model.messageKey plaintext
-  
+
 
 decodeAesChipertext : Model -> Ciphertext -> Plaintext
 decodeAesChipertext model chipertext = doDecrypt model.messageKey chipertext
@@ -132,7 +130,7 @@ manageAnswers t data model = case t.msgType of
     sendMessage (ToJson.encodeLoadChats),
     sendMessage (ToJson.encodeLoadUsers)])
   "chats_loaded" -> ({model | 
-      chats = List.map (decryptChatPreviewAes model) (returnChats (D.decodeString decodeChatsLoaded data)), 
+      chats = List.map (decryptChatPreviewAes model) (returnChats (D.decodeString decodeChatsLoaded data)),
       receivedMessageFromServer = {msgType = "chats_loaded"}
     }, Cmd.none)
   "users_loaded" -> ({model | users = returnUsers (D.decodeString decodeUsersLoaded data), filteredUsers = returnUsers(D.decodeString decodeUsersLoaded data), receivedMessageFromServer = {msgType = "users_loaded"}}, Cmd.none)
@@ -147,7 +145,7 @@ manageAnswers t data model = case t.msgType of
       sendMessage (ToJson.encodeLoadMessages model.activeChatPartner.id),
       sendMessage (ToJson.encodeLoadChats),
       sendMessage (ToJson.encodeRecievedMessage (returnReceiveMessage (D.decodeString decodeReceiveMessage data)))
-      ])--Cmd.none)
+      ])
   "user_created" -> ({model | users = returnUserCreated (D.decodeString decodeUserCreated data) :: model.users }, Cmd.none)
   "user_logged_in" -> ({model |users = 
     List.map (\ a -> if a.user.id == (returnUserLoggedIn (D.decodeString decodeUserLoggedIn data)) then {a | is_online = True} else a) model.users, receivedMessageFromServer = {msgType = "user_logged_in"}}, Cmd.none)
@@ -160,13 +158,15 @@ manageAnswers t data model = case t.msgType of
           sendMessage (ToJson.encodeLoadUsers)])
   _ -> (model, Cmd.none)
 
+
 changePage : Page -> Model -> (Model, Cmd Msg)
 changePage p model = case p of 
-  NewChatPage -> ({model | page = p}, sendMessage (ToJson.encodeLoadUsers))
-  ChatPage -> ({model | page = p}, sendMessage (ToJson.encodeLoadChats))
-  LoginPage -> ({model | page = p}, Cmd.none)
-  RegisterPage -> ({model | page = p}, Cmd.none)
-  ProfilePage -> ({model | page = p}, Cmd.none)
+  NewChatPage -> ({model | page = p, errorMessage = ""}, sendMessage (ToJson.encodeLoadUsers))
+  ChatPage -> ({model | page = p, errorMessage = ""}, sendMessage (ToJson.encodeLoadChats))
+  LoginPage -> ({model | page = p, errorMessage = ""}, Cmd.none)
+  RegisterPage -> ({model | page = p, errorMessage = ""}, Cmd.none)
+  ProfilePage -> ({model | page = p, errorMessage = ""}, Cmd.none)
+
 
 -- generate every second a tick from the time for salt the aes encryption
 subscriptions : Model -> Sub Msg
@@ -176,7 +176,7 @@ subscriptions _ =
 view : Model -> Html Msg
 view m = case m.page of
   LoginPage -> withLoginContainer m (Login.loginView m.user)
-  RegisterPage -> withLoginContainer m (Register.registerView m.errorMessage)
+  RegisterPage -> withLoginContainer m (Register.registerView)
   ChatPage -> withContainer m (Chat.chatView m.activeChatPartner m.messages m.chats m)
   NewChatPage -> withContainer m (NewChat.newChatView m)
   ProfilePage -> withContainer m (Profile.profileView m.user)
@@ -213,7 +213,7 @@ withLoginContainer model content =
   ]
 
 withContainer : Model -> Html Msg  -> Html Msg
-withContainer model content = 
+withContainer model content =
  div [ class "container"] [
   navigation model.page,
   content,

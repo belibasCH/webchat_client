@@ -2,7 +2,6 @@ module Services.JsonEncoder exposing (..)
 import Json.Encode as E
 import Types exposing (..)
 import Json.Decode exposing (Error)
-import Json.Decode exposing (decodeString)
 import Json.Decode as D
 import Maybe exposing (withDefault)
 import Services.ParserCrypt exposing (decodeStringMessage, publicKeyToString, stringToPrivateKey)
@@ -46,9 +45,9 @@ encodeRegisterUser m =
     , ("public_key", E.string (publicKeyToString m.tmpPublicKey))
     , ("private_key", E.string (encryptPrivateKeyWithAes m m.privateKey m.password))
     , ("message_key", E.string (doEncrypt m.time m.password m.messageKey))
-    ] 
-    
-    
+    ]
+
+
 
 encodeLogin : Model -> E.Value
 encodeLogin m =
@@ -136,13 +135,13 @@ encodeChangePassword password =
 returnChats : Result Error ChatsLoaded -> List ChatPreview
 returnChats r = case r of
   Ok ok -> ok.chats
-  Err e -> []
+  Err _ -> []
 
 returnUsers : Result Error UsersLoaded -> List UserPreview
 returnUsers r = case r of
   Ok ok -> ok.users
-  Err e -> []
-  
+  Err _ -> []
+
 returnUser : Result Error LoginSucceded ->  User
 returnUser r = case r of
   Ok ok -> ok.user
@@ -218,10 +217,10 @@ decodeChatPreview = D.map4 ChatPreview
   (D.field "unread_message_count" D.int)
 
 decodeMessage : D.Decoder Message
-decodeMessage = D.map8 Message 
+decodeMessage = D.map8 Message
   (D.field "id" D.string) 
   (D.field "key" D.string)
-  (D.field "sender_id" D.string) 
+  (D.field "sender_id" D.string)
   (D.field "receiver_id" D.string) 
   (D.field "text" D.string) 
   (D.field "sent_at" D.string) 
@@ -234,7 +233,7 @@ decodeType = D.map Answertype (D.field "type" D.string)
 returnTypeSave : Result Error Answertype -> Answertype
 returnTypeSave r = case r of
   Ok ok -> ok
-  Err e -> Answertype "Error"
+  Err _ -> Answertype "Error"
   
 
 decodeLoginSucceded : Model -> D.Decoder LoginSucceded
@@ -257,7 +256,7 @@ returnSave s = case s of
 returnLoadMessages : Result Error ChatLoaded -> List Message
 returnLoadMessages s = case s of
   Ok ok -> ok.messages
-  Err e -> []
+  Err _ -> []
 
 decodeMessageLoaded : D.Decoder ChatLoaded
 decodeMessageLoaded = D.map2 ChatLoaded 
@@ -275,7 +274,7 @@ decodeMessageRead = D.map2 ReadMessage
 returnMessageRead : Result Error ReadMessage -> String
 returnMessageRead s = case s of
   Ok ok -> ok.id
-  Err e -> "Error"
+  Err _ -> "Error"
 
 returnPrivateKey : Result Error PrivateKey  -> PrivateKey
 returnPrivateKey s = case s of

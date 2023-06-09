@@ -56,6 +56,7 @@
     width: 50px;
     border-radius: 50%;
     align-self: center;
+    object-fit: cover;
 }
 .user-col{
     display: flex;
