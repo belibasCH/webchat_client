@@ -155,7 +155,7 @@ returnError r = case r of
 returnReceiveMessage : Result Error ReceiveMessage -> String
 returnReceiveMessage r = case r of
   Ok ok -> ok.message.id
-  Err e -> "Error decoding message" 
+  Err _ -> "Error decoding message"
 
 returnUserCreated : Result Error UserCreated -> UserPreview
 returnUserCreated r = case r of

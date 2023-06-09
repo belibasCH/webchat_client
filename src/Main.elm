@@ -1,4 +1,5 @@
 port module Main exposing (..)
+
 import Browser
 import Html exposing (..)
 import Html.Events exposing (..)
@@ -157,7 +158,6 @@ manageAnswers t data model = case t.msgType of
           sendMessage (ToJson.encodeLoadChats),
           sendMessage (ToJson.encodeLoadUsers)])
   _ -> (model, Cmd.none)
-
 
 changePage : Page -> Model -> (Model, Cmd Msg)
 changePage p model = case p of 
